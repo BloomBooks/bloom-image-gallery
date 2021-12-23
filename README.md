@@ -1,15 +1,24 @@
-# Vite + React + Typescript + Eslint + Prettier
+Currently, this is just the start of a project to re-implement the existing libpalaso Image Toolbox as react component. 
 
-A starter for React with Typescript with the fast Vite and all static code testing with Eslint and formatting with Prettier.
+## Stack
+* [ViteJS](https://vitejs.dev/)
+* Typescript
+* [MUI](https://mui.com/)
+* [Emotion](https://emotion.sh)
 
-![Vite + React + Typescript + Eslint + Prettier](/resources/screenshot.png)
+## Design
+It might eventually look something like this:
+![image](https://user-images.githubusercontent.com/8448/147300507-7bba8dd1-b7e7-4125-ab36-851580170b86.png)
 
-I found out about Vite and I wanted to have a boilerplate for the technologies that I use. You can find more about these in the following links: [Vite](https://github.com/vitejs/vite), [React](https://reactjs.org/), [Typescript](https://www.typescriptlang.org/), [Eslint](https://eslint.org/), [Prettier](https://prettier.io/).
 
-## Installation
+## Project setup
 
-Clone the repo and run `yarn install`
+```
+yarn install
+```
 
-## Start
+### Compiles and hot-reloads for development
 
-After the successfull installation of the packages: `yarn dev`
+```
+yarn dev
+```
