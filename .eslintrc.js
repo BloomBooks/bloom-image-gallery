@@ -22,20 +22,20 @@ module.exports = {
     'eslint:recommended',
     'plugin:react/recommended',
     'plugin:jsx-a11y/recommended',
-    'plugin:prettier/recommended',
+    //'plugin:prettier/recommended',
     'plugin:storybook/recommended',
   ],
-  plugins: ['prettier'],
+  //plugins: ['prettier'],
   rules: {
     'react/no-unescaped-entities': 0,
     'no-unused-vars': 0,
-    'prettier/prettier': [
-      'error',
-      {},
-      {
-        usePrettierrc: true,
-      },
-    ],
+    // 'prettier/prettier': [
+    //   'error',
+    //   {},
+    //   {
+    //     usePrettierrc: true,
+    //   },
+    // ],
     'react/react-in-jsx-scope': 'off',
     'jsx-a11y/accessible-emoji': 'off',
     'react/prop-types': 'off',

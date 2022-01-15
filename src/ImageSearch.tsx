@@ -1,24 +1,53 @@
 import { css } from '@emotion/react';
-import { Divider, ImageList, ImageListItem } from '@mui/material';
+import {
+  Button,
+  Divider,
+  IconButton,
+  ImageList,
+  ImageListItem,
+  TextField,
+} from '@mui/material';
 import React from 'react';
-
+import { SearchResults } from './SearchResults';
+import SearchIcon from '@mui/icons-material/Search';
 export const ImageSearch: React.FunctionComponent<{}> = (props) => {
   return (
     <div
       css={css`
         flex-grow: 1;
       `}>
-      <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
-        {[1, 2, 3, 4, 5, 6].map((item) => (
-          <ImageListItem key={item}>
-            <img
-              src={`https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=164&h=164&fit=crop&auto=format?w=164&h=164&fit=crop&auto=format`}
-              alt={item.toString()}
-              loading="lazy"
+      <div
+        css={css`
+          display: flex;
+          flex-direction: row;
+        `}>
+        <TextField
+          id="outlined-basic"
+          label="Search"
+          variant="outlined"
+          size="small"
+          sx={{ width: '300px' }}></TextField>
+        {/* MUI IconButton by itself can't be contained. So we use a normal
+        Button with no text. */}
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={
+            <SearchIcon
+              css={css`
+                width: 30px;
+                height: 30px;
+              `}
             />
-          </ImageListItem>
-        ))}
-      </ImageList>
+          }
+          css={css`
+            span {
+              margin: 0; // center the icon
+            }
+            margin-left: 5px;
+          `}></Button>
+      </div>
+      <SearchResults />
     </div>
   );
 };

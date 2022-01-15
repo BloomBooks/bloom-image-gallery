@@ -21,7 +21,11 @@ p {
 .header {
   font-size: 3rem;
 }
-
+html,body,#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;;
+}
 .body {
   margin: 20px 0 10px;
   font-size: 0.9rem;

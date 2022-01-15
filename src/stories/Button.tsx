@@ -1,5 +1,5 @@
 import './button.css';
-
+import { css } from '@emotion/react';
 import React from 'react';
 
 interface ButtonProps {
@@ -38,6 +38,9 @@ export const Button = ({
   const mode = primary ? 'storybook-button--primary' : 'storybook-button--secondary';
   return (
     <button
+      css={css`
+        margin-top: 200px;
+      `}
       type="button"
       className={['storybook-button', `storybook-button--${size}`, mode].join(' ')}
       style={{ backgroundColor }}

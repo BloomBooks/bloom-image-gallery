@@ -12,6 +12,7 @@ export const ImageScreen: React.FunctionComponent<{}> = (props) => {
         flex-direction: row;
         width: 100%;
         height: 500px; // enhance
+        padding: 20px;
       `}>
       <ImageSearch />
       <Divider orientation="vertical" flexItem />
