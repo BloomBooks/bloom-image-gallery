@@ -1,10 +1,24 @@
 import { css } from '@emotion/react';
 import { Divider } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ImageDetails } from './ImageDetails';
 import { ImageSearch } from './ImageSearch';
 
-export const ImageScreen: React.FunctionComponent<{}> = (props) => {
+export const ImageScreen: React.FunctionComponent<{
+  collection: string;
+  lang: string;
+  chosenFile: string;
+}> = (props) => {
+  const [selectedImage, setSelectedImage] = React.useState('');
+
+  function handleSearchSelection(item: string) {
+    setSelectedImage(item);
+  }
+
+  useEffect(() => {
+    setSelectedImage('');
+  }, [props.collection]);
+
   return (
     <div
       css={css`
@@ -14,9 +28,17 @@ export const ImageScreen: React.FunctionComponent<{}> = (props) => {
         height: 500px; // enhance
         padding: 20px;
       `}>
-      <ImageSearch />
+      <ImageSearch
+        collection={props.collection}
+        lang={props.lang}
+        handleSelection={handleSearchSelection}
+      />
       <Divider orientation="vertical" flexItem />
-      <ImageDetails />
+      <ImageDetails
+        collection={props.collection}
+        imageFile={selectedImage}
+        chosenFile={props.chosenFile}
+      />
     </div>
   );
 };

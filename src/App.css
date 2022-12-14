@@ -21,10 +21,12 @@ p {
 .header {
   font-size: 3rem;
 }
-html,body,#root {
+html,
+body,
+#root {
   display: flex;
   flex-direction: column;
-  height: 100%;;
+  height: 100%;
 }
 .body {
   margin: 20px 0 10px;
