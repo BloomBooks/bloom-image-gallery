@@ -1,18 +1,19 @@
-import { CommonRoutesConfig } from '../common/common.routes.config';
-import express from 'express';
-import fs from 'fs';
-import path from 'path';
+import { CommonRoutesConfig } from "../common/common.routes.config.js";
+import express from "express";
+import fs from "fs";
+import path from "path";
+import { spawn } from "child_process";
 
 // This class implements an API for accessing the file system looking for pictures.
 // Two types are search are provided: browsing an image collection like Art of Reading
 // or using a file browser to randomly find an image file.
 export class ImageToolboxRoutes extends CommonRoutesConfig {
   constructor(app: express.Application) {
-    super(app, 'ImageToolboxRoutes');
+    super(app, "ImageToolboxRoutes");
   }
 
   // This is the base location for storing image collections.
-  readonly baseFolder = 'C:\\ProgramData\\SIL\\ImageCollections';
+  readonly baseFolder = "C:\\ProgramData\\SIL\\ImageCollections";
   // This Map of Maps of Maps provides lookup for relative locations of images in a collection based on keyword and language.
   // Each collection is responsible for providing an appropriate index file.
   readonly indexes = new Map<string, Map<string, Map<string, string[]>>>();
@@ -28,19 +29,19 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
             // initialize in-memory indexes?
             entries.forEach((entry) => {
               const indexPath = `${this.baseFolder}\\${entry}\\index.txt`;
-              fs.readFile(indexPath, 'utf8', (err, data) => {
+              fs.readFile(indexPath, "utf8", (err, data) => {
                 if (!err) {
                   this.storeIndex(entry, data);
                 }
               });
             });
-            const result = { collections: entries, languages: ['en', 'es'] };
+            const result = { collections: entries, languages: ["en", "es"] };
             res.status(200).send(result);
           }
         });
       });
     this.app
-      .route('/image-toolbox/search/:collection/:lang/:term')
+      .route("/image-toolbox/search/:collection/:lang/:term")
       .get((req: express.Request, res: express.Response) => {
         const files =
           this.indexes
@@ -50,19 +51,19 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         res.status(200).send(files);
       });
     this.app
-      .route('/image-toolbox/collection-image-file/:collection/:file')
+      .route("/image-toolbox/collection-image-file/:collection/:file")
       .get((req: express.Request, res: express.Response) => {
         const filepath = `${this.baseFolder}\\${req.params.collection}\\images\\${req.params.file}`;
         this.returnImageFileContent(filepath, res);
       });
     this.app
-      .route('/image-toolbox/collection-image-properties/:collection/:file')
+      .route("/image-toolbox/collection-image-properties/:collection/:file")
       .get((req: express.Request, res: express.Response) => {
         const filepath = `${this.baseFolder}\\${req.params.collection}\\images\\${req.params.file}`;
         this.returnImageProperties(filepath, res);
       });
     this.app
-      .route('/image-toolbox/file-dialog')
+      .route("/image-toolbox/file-dialog")
       .get((req: express.Request, res: express.Response) => {
         // This hack is extremely Windows-centric.  But for our purposes at the moment, it will have to do.
         // See https://stackoverflow.com/questions/51655571/how-to-open-a-select-folder-dialog-from-nodejs-server-side-not-browser
@@ -75,29 +76,28 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
                 $null = $FileBrowser.ShowDialog()
                 $FileBrowser.FileName
                 `;
-        let filepath: string = '';
-        const spawn = require('child_process').spawn;
-        const child = spawn('powershell.exe', [psScript]);
-        child.stdout.on('data', function (data: string) {
+        let filepath: string = "";
+        const child = spawn("powershell.exe", [psScript]);
+        child.stdout.on("data", function (data: string) {
           filepath = data;
         });
-        child.stderr.on('data', function (data: string) {
+        child.stderr.on("data", function (data: string) {
           //this script block will get the output of the PS script
-          console.log('Powershell Errors: ' + data);
+          console.log("Powershell Errors: " + data);
         });
-        child.on('exit', function () {
-          res.status(200).type('text/plain').send(filepath);
+        child.on("exit", function () {
+          res.status(200).type("text/plain").send(filepath);
         });
         child.stdin.end(); //end input
       });
     this.app
-      .route('/image-toolbox/image-file/:filepath')
+      .route("/image-toolbox/image-file/:filepath")
       .get((req: express.Request, res: express.Response) => {
         const filepath: string = `${req.params.filepath}`;
         this.returnImageFileContent(filepath, res);
       });
     this.app
-      .route('/image-toolbox/image-properties/:filepath')
+      .route("/image-toolbox/image-properties/:filepath")
       .get((req: express.Request, res: express.Response) => {
         const filepath: string = `${req.params.filepath}`;
         this.returnImageProperties(filepath, res);
@@ -126,43 +126,43 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
     try {
       const stats = fs.statSync(filepath);
       const extension = path.extname(filepath);
-      let typeName: string = '';
+      let typeName: string = "";
       if (extension) {
         switch (extension.toLowerCase()) {
-          case '.png':
-            typeName = 'PNG';
+          case ".png":
+            typeName = "PNG";
             break;
-          case '.jpg':
-          case '.jpeg':
-            typeName = 'JPEG';
+          case ".jpg":
+          case ".jpeg":
+            typeName = "JPEG";
             break;
           default:
             typeName = extension.substring(1).toUpperCase();
             break;
         }
       }
-      res.status(200).type('json').send({ size: stats.size, type: typeName });
+      res.status(200).type("json").send({ size: stats.size, type: typeName });
     } catch {
-      res.status(200).type('json').send({});
+      res.status(200).type("json").send({});
     }
   }
 
   private storeIndex(collection: string, data: string): void {
-    const lines: string[] = data.split('\n');
-    const headers: string[] = lines[0].trim().split('\t');
-    const indexFilename = headers.indexOf('filename', 0);
+    const lines: string[] = data.split("\n");
+    const headers: string[] = lines[0].trim().split("\t");
+    const indexFilename = headers.indexOf("filename", 0);
     const indexSubfolder =
-      headers.indexOf('subfolder') > -1
-        ? headers.indexOf('subfolder')
-        : headers.indexOf('country');
-    const indexEnglish = headers.indexOf('en');
-    const indexSpanish = headers.indexOf('es');
+      headers.indexOf("subfolder") > -1
+        ? headers.indexOf("subfolder")
+        : headers.indexOf("country");
+    const indexEnglish = headers.indexOf("en");
+    const indexSpanish = headers.indexOf("es");
 
     const collectionMap = new Map<string, Map<string, string[]>>();
     const basepath = `${this.baseFolder}\\${collection}\\images`;
 
     for (let i = 1; i < lines.length; ++i) {
-      const entry = lines[i].trim().split('\t');
+      const entry = lines[i].trim().split("\t");
       const filename = entry[indexFilename];
       const subfolder = entry[indexSubfolder];
       this.storeInMapsIfFileExists(
@@ -196,7 +196,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         entry,
         indexSpanish,
         collectionMap,
-        subpath.replace(/\\/g, '%2f'),
+        subpath.replace(/\\/g, "%2f"),
       );
       return true;
     } catch (err) {
@@ -236,13 +236,17 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
     subpath: string,
   ) {
     const englishTags =
-      indexEnglish >= 0 && indexEnglish < entry.length ? entry[indexEnglish] : '';
+      indexEnglish >= 0 && indexEnglish < entry.length
+        ? entry[indexEnglish]
+        : "";
     const spanishTags =
-      indexSpanish >= 0 && indexSpanish < entry.length ? entry[indexSpanish] : '';
+      indexSpanish >= 0 && indexSpanish < entry.length
+        ? entry[indexSpanish]
+        : "";
     if (englishTags) {
-      const tags = englishTags.split(',');
+      const tags = englishTags.split(",");
       tags.forEach((tag) => {
-        let englishMap = collectionIndex.get('en');
+        let englishMap = collectionIndex.get("en");
         if (englishMap) {
           let tagMap = englishMap.get(tag);
           // Using %2f instead of / allows the router to use :file to collect both the folder and the filename
@@ -254,14 +258,14 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         } else {
           englishMap = new Map<string, string[]>();
           englishMap.set(tag, [subpath]);
-          collectionIndex.set('en', englishMap);
+          collectionIndex.set("en", englishMap);
         }
       });
     }
     if (spanishTags) {
-      const tags = spanishTags.replace(/(^"|"$)/g, '').split(',');
+      const tags = spanishTags.replace(/(^"|"$)/g, "").split(",");
       tags.forEach((tag) => {
-        let spanishMap = collectionIndex.get('es');
+        let spanishMap = collectionIndex.get("es");
         if (spanishMap) {
           let tagMap = spanishMap.get(tag);
           // Using %2f instead of / allows the router to use :file to collect both the folder and the filename
@@ -273,7 +277,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         } else {
           spanishMap = new Map<string, string[]>();
           spanishMap.set(tag, [subpath]);
-          collectionIndex.set('es', spanishMap);
+          collectionIndex.set("es", spanishMap);
         }
       });
     }

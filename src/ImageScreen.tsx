@@ -1,22 +1,22 @@
-import { css } from '@emotion/react';
-import { Divider } from '@mui/material';
-import React, { useEffect } from 'react';
-import { ImageDetails } from './ImageDetails';
-import { ImageSearch } from './ImageSearch';
+import { css } from "@emotion/react";
+import { Divider } from "@mui/material";
+import React, { useEffect } from "react";
+import { ImageDetails } from "./ImageDetails";
+import { ImageSearch } from "./ImageSearch";
 
 export const ImageScreen: React.FunctionComponent<{
   collection: string;
   lang: string;
   chosenFile: string;
 }> = (props) => {
-  const [selectedImage, setSelectedImage] = React.useState('');
+  const [selectedImage, setSelectedImage] = React.useState("");
 
   function handleSearchSelection(item: string) {
     setSelectedImage(item);
   }
 
   useEffect(() => {
-    setSelectedImage('');
+    setSelectedImage("");
   }, [props.collection]);
 
   return (
@@ -27,7 +27,8 @@ export const ImageScreen: React.FunctionComponent<{
         width: 100%;
         height: 500px; // enhance
         padding: 20px;
-      `}>
+      `}
+    >
       <ImageSearch
         collection={props.collection}
         lang={props.lang}
