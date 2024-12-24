@@ -1,4 +1,5 @@
-import "./App.css";
+/// <reference types="@types/wicg-file-system-access" />
+// import "./App.css";
 import { css } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import axios from "axios";

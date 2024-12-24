@@ -7,9 +7,13 @@
     "strict": true,
     "esModuleInterop": true,
     "inlineSourceMap": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
   },
-  "include": ["./**/*.ts"],
+  "include": [
+    "./**/*.ts"
+  ],
   "exclude": [
     "../node_modules/@types/storybook__react", // enhance: storybook is currently out of date
     "../src/**/*" // Exclude the client-side code
