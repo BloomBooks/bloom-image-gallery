@@ -40,6 +40,9 @@ function App() {
       .get("http://localhost:5000/image-toolbox/collections")
       .then((response) => {
         setImageCollections(response.data.collections);
+        if (response.data.collections.length > 0) {
+          setCheckedCollection(response.data.collections[0]);
+        }
         setLanguages(response.data.languages);
       })
       .catch((reason) => {
@@ -89,61 +92,55 @@ function App() {
           <Toolbar />
           <Box sx={{ overflow: "auto" }}>
             <List>
-              <ListItem>
-                <ListItemIcon>
-                  <FolderIcon
-                    onClick={async () => {
-                      try {
-                        const [fileHandle] = await window.showOpenFilePicker({
-                          types: [
-                            {
-                              description: "Images",
-                              accept: {
-                                "image/jpeg": [".jpeg", ".jpg"],
-                                "image/png": [".png"],
-                                //todo 'image/tiff': ['.tiff'],
-                                "image/bmp": [".bmp"],
-                              },
+              <ListItem disablePadding>
+                <ListItemButton
+                  onClick={async () => {
+                    try {
+                      const [fileHandle] = await window.showOpenFilePicker({
+                        types: [
+                          {
+                            description: "Images",
+                            accept: {
+                              "image/jpeg": [".jpeg", ".jpg"],
+                              "image/png": [".png"],
+                              //todo 'image/tiff': ['.tiff'],
+                              "image/bmp": [".bmp"],
                             },
-                          ],
-                        });
-                        // set div to a png of the file
-                        const file = await fileHandle.getFile();
-                        const url = URL.createObjectURL(file);
-                        setChosenFileUrl(url);
-                      } catch (error) {
-                        console.error(error);
-                      }
-                    }}
-                  />
-                </ListItemIcon>
-                <input
-                  id="fileInput"
-                  type="file"
-                  css={css`
-                    display: none;
-                  `}
-                />
-                <ListItemText primary={"File"} />
+                          },
+                        ],
+                      });
+                      // set div to a png of the file
+                      const file = await fileHandle.getFile();
+                      const url = URL.createObjectURL(file);
+                      setChosenFileUrl(url);
+                    } catch (error) {
+                      console.error(error);
+                    }
+                  }}
+                >
+                  <ListItemIcon>
+                    <FolderIcon />
+                  </ListItemIcon>
+                  <ListItemText primary={"Open File..."} />
+                </ListItemButton>
               </ListItem>
               {imageCollections.map((item) => (
-                <ListItem key={item}>
-                  <ListItemButton
-                    role={undefined}
-                    onClick={handleToggleCollection(item)}
-                    dense
-                  >
-                    <ListItemIcon>
-                      <Checkbox
-                        edge="start"
-                        checked={item === checkedCollection}
-                        tabIndex={-1}
-                        disableRipple
-                      />
-                    </ListItemIcon>
-                    <ListItemText primary={item} />
-                  </ListItemButton>{" "}
-                </ListItem>
+                <ListItemButton
+                  key={item}
+                  role={undefined}
+                  onClick={handleToggleCollection(item)}
+                  dense
+                >
+                  <ListItemIcon>
+                    <Checkbox
+                      edge="start"
+                      checked={item === checkedCollection}
+                      tabIndex={-1}
+                      disableRipple
+                    />
+                  </ListItemIcon>
+                  <ListItemText primary={item} />
+                </ListItemButton>
               ))}
             </List>
             <Divider />

@@ -5,6 +5,7 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  CircularProgress,
 } from "@mui/material";
 import React, { useEffect } from "react";
 import { SearchResults } from "./SearchResults";
@@ -15,9 +16,10 @@ export const ImageSearch: React.FunctionComponent<{
   lang: string;
   handleSelection: (item: string) => void;
 }> = (props) => {
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = React.useState("tree");
   const [searchLanguage, setSearchLanguage] = React.useState(props.lang);
   const [imagesFound, setImagesFound] = React.useState([] as string[]);
+  const [isLoading, setIsLoading] = React.useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -29,18 +31,19 @@ export const ImageSearch: React.FunctionComponent<{
   };
   const handleLanguageChange = (
     event: SelectChangeEvent<string>,
-    child: React.ReactNode,
+    child: React.ReactNode
   ) => {
     console.log(
-      `DEBUG handleLanguageChange(): value=${event.target.value} name=${event.target.name}`,
+      `DEBUG handleLanguageChange(): value=${event.target.value} name=${event.target.name}`
     );
     setSearchLanguage(event.target.value);
   };
 
   function searchForImages(): void {
+    setIsLoading(true);
     const uriSearch = `http://localhost:5000/image-toolbox/search/${props.collection.replaceAll(
       " ",
-      "%20",
+      "%20"
     )}/${searchLanguage}/${searchTerm.replaceAll(" ", "%20")}`;
     axios
       .get(uriSearch)
@@ -52,10 +55,12 @@ export const ImageSearch: React.FunctionComponent<{
         } else {
           setImagesFound([]);
         }
+        setIsLoading(false);
       })
       .catch((reason) => {
         console.log(`axios call image-toolbox/collections failed: ${reason}`);
         setImagesFound([]);
+        setIsLoading(false);
       });
   }
 
@@ -72,9 +77,10 @@ export const ImageSearch: React.FunctionComponent<{
 
   useEffect(() => {
     setImagesFound([]);
-    const input = document.getElementById("outlined-basic") as HTMLInputElement;
-    if (input) input.value = "";
-    setSearchTerm("");
+    // Only clear search if collection or language changes
+    if (searchTerm !== "tree") {
+      setSearchTerm("");
+    }
   }, [props.collection, props.lang]);
 
   return (
@@ -87,6 +93,7 @@ export const ImageSearch: React.FunctionComponent<{
         css={css`
           display: flex;
           flex-direction: row;
+          align-items: center;
         `}
       >
         <TextField
@@ -94,6 +101,7 @@ export const ImageSearch: React.FunctionComponent<{
           label="Search"
           variant="outlined"
           size="small"
+          value={searchTerm}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
           sx={{ width: "300px" }}
@@ -119,7 +127,12 @@ export const ImageSearch: React.FunctionComponent<{
             margin-left: 5px;
           `}
         ></Button>
-        <Select value={searchLanguage} onChange={handleLanguageChange}>
+        <Select
+          value={searchLanguage}
+          onChange={handleLanguageChange}
+          size="small"
+          sx={{ marginLeft: 1 }}
+        >
           {["en", "es"].map((value, index) => {
             return (
               <MenuItem key={value} value={value}>
@@ -133,6 +146,7 @@ export const ImageSearch: React.FunctionComponent<{
         collection={props.collection}
         images={imagesFound}
         handleSelection={props.handleSelection}
+        isLoading={isLoading}
       />
     </div>
   );
