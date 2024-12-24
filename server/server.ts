@@ -2,8 +2,8 @@ import express from 'express';
 import * as http from 'http';
 import cors from 'cors';
 
-import { CommonRoutesConfig } from './common/common.routes.config';
-import { ImageToolboxRoutes } from './imagetoolbox/imagetoolbox.routes.config';
+import { CommonRoutesConfig } from './common/common.routes.config.js';
+import { ImageToolboxRoutes } from './imagetoolbox/imagetoolbox.routes.config.js';
 
 const app: express.Application = express();
 const server: http.Server = http.createServer(app);

@@ -1,10 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es2016",
-    "module": "commonjs",
-    "outDir": "../apiServer",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "outDir": "../serverOutput",
     "strict": true,
     "esModuleInterop": true,
-    "inlineSourceMap": true
-  }
+    "inlineSourceMap": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "../node_modules/@types/storybook__react", // enhance: storybook is currently out of date
+    "../src/**/*" // Exclude the client-side code
+  ]
 }

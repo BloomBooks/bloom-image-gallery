@@ -1,7 +1,8 @@
-import { CommonRoutesConfig } from '../common/common.routes.config';
+import { CommonRoutesConfig } from '../common/common.routes.config.js';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 
 // This class implements an API for accessing the file system looking for pictures.
 // Two types are search are provided: browsing an image collection like Art of Reading
@@ -76,7 +77,6 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
                 $FileBrowser.FileName
                 `;
         let filepath: string = '';
-        const spawn = require('child_process').spawn;
         const child = spawn('powershell.exe', [psScript]);
         child.stdout.on('data', function (data: string) {
           filepath = data;
