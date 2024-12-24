@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 export const ImageDetails: React.FunctionComponent<{
   collection?: string;
   imageFile?: string;
-  chosenFile?: string;
+  chosenFileUrl?: string;
 }> = (props) => {
   const [imageProps, setImageProps] = useState({ size: 0, type: "" });
   const [imageDimensions, setImageDimensions] = useState("");
@@ -18,17 +18,12 @@ export const ImageDetails: React.FunctionComponent<{
       "%20"
     )}/${props.imageFile}`;
     imgSrc = `http://localhost:5000/image-toolbox/collection-image-file/${props.collection}/${props.imageFile}`;
-  } else if (props.chosenFile) {
-    uriSearch = `http://localhost:5000/image-toolbox/image-properties/${encodeURIComponent(
-      props.chosenFile
-    )}`;
-    imgSrc = `http://localhost:5000/image-toolbox/image-file/${encodeURIComponent(
-      props.chosenFile
-    )}`;
+  } else if (props.chosenFileUrl) {
+    imgSrc = props.chosenFileUrl;
   }
 
   useEffect(() => {
-    if ((props.collection && props.imageFile) || props.chosenFile) {
+    if (props.collection && props.imageFile) {
       axios
         .get(uriSearch)
         .then((response) => {
@@ -45,7 +40,7 @@ export const ImageDetails: React.FunctionComponent<{
       setImageProps({ size: 0, type: "" });
       setImageDimensions("");
     }
-  }, [props.collection, props.imageFile, props.chosenFile]);
+  }, [props.collection, props.imageFile]);
 
   function imageLoaded(event: React.SyntheticEvent<HTMLImageElement, Event>) {
     const image = document.getElementById("details-image") as HTMLImageElement;

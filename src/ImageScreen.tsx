@@ -7,7 +7,7 @@ import { ImageSearch } from "./ImageSearch";
 export const ImageScreen: React.FunctionComponent<{
   collection: string;
   lang: string;
-  chosenFile: string;
+  chosenFileUrl?: string;
 }> = (props) => {
   const [selectedImage, setSelectedImage] = React.useState("");
 
@@ -38,7 +38,7 @@ export const ImageScreen: React.FunctionComponent<{
       <ImageDetails
         collection={props.collection}
         imageFile={selectedImage}
-        chosenFile={props.chosenFile}
+        chosenFileUrl={props.chosenFileUrl}
       />
     </div>
   );

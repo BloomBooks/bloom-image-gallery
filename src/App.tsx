@@ -29,7 +29,9 @@ const drawerWidth = 200;
 function App() {
   const [imageCollections, setImageCollections] = useState([] as string[]);
   const [checkedCollection, setCheckedCollection] = useState("");
-  const [chosenFile, setChosenFile] = useState("");
+  const [chosenFileUrl, setChosenFileUrl] = useState<string | undefined>(
+    undefined
+  );
   const [languages, setLanguages] = useState([] as string[]);
 
   useEffect(() => {
@@ -48,22 +50,8 @@ function App() {
   function handleToggleCollection(value: string) {
     return () => {
       setCheckedCollection(value);
-      setChosenFile("");
+      setChosenFileUrl(undefined);
     };
-  }
-
-  function handleFileClick() {
-    setCheckedCollection("");
-    axios
-      .get("http://localhost:5000/image-toolbox/file-dialog")
-      .then((response) => {
-        setChosenFile((response.data as string).trim());
-      })
-      .catch((reason) => {
-        console.log(
-          `DEBUG axios.get image-toolbox/file-dialog failed: ${reason}`,
-        );
-      });
   }
 
   return (
@@ -102,7 +90,31 @@ function App() {
             <List>
               <ListItem>
                 <ListItemIcon>
-                  <FolderIcon onClick={handleFileClick} />
+                  <FolderIcon
+                    onClick={async () => {
+                      try {
+                        const [fileHandle] = await window.showOpenFilePicker({
+                          types: [
+                            {
+                              description: "Images",
+                              accept: {
+                                "image/jpeg": [".jpeg", ".jpg"],
+                                "image/png": [".png"],
+                                //todo 'image/tiff': ['.tiff'],
+                                "image/bmp": [".bmp"],
+                              },
+                            },
+                          ],
+                        });
+                        // set div to a png of the file
+                        const file = await fileHandle.getFile();
+                        const url = URL.createObjectURL(file);
+                        setChosenFileUrl(url);
+                      } catch (error) {
+                        console.error(error);
+                      }
+                    }}
+                  />
                 </ListItemIcon>
                 <input
                   id="fileInput"
@@ -164,7 +176,7 @@ function App() {
           <ImageScreen
             collection={checkedCollection}
             lang={"en"}
-            chosenFile={chosenFile}
+            chosenFileUrl={chosenFileUrl}
           />
         </Box>
       </Box>
