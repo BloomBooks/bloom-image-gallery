@@ -3,15 +3,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "client": "start http://localhost:5173 && vite",
+    "client": "vite",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "server": "nodemon serverOutput/server.js",
     "build": "tsc && vite build && tsc -p server/tsconfig.json",
-    "serve": "vite preview",
-    "lint:fix": "eslint ./src --ext .jsx,.js,.ts,.tsx --quiet --fix --ignore-path ./.gitignore",
-    "lint:format": "prettier  --loglevel warn --write \"./**/*.{js,jsx,ts,tsx,css,md,json}\" ",
-    "lint": "yarn lint:format && yarn lint:fix ",
-    "type-check": "tsc",
+    "lint": "eslint --config eslint.config.js .",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
   },

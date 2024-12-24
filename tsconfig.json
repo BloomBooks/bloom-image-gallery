@@ -21,7 +21,11 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react"
+    "jsx": "react",
+    "noImplicitAny": false, // Corresponds to no-explicit-any
+    "noUnusedLocals": true, // But as warning instead of error
+    "noUnusedParameters": true, // But as warning instead of error
+    "noFallthroughCasesInSwitch": true
   },
   "include": [
     "./src"
