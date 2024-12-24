@@ -7,9 +7,7 @@
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "server": "nodemon serverOutput/server.js",
     "build": "tsc && vite build && tsc -p server/tsconfig.json",
-    "lint": "eslint --config eslint.config.js .",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook"
+    "lint": "eslint --config eslint.config.js ."
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -26,10 +24,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.16.5",
-    "@storybook/addon-actions": "^6.5.0-alpha.5",
-    "@storybook/addon-essentials": "^6.5.0-alpha.5",
-    "@storybook/addon-links": "^6.5.0-alpha.5",
-    "@storybook/react": "^6.5.0-alpha.5",
     "@types/cors": "^2.8.13",
     "@types/express": "^4.17.14",
     "@types/react": "^18.3.0",
@@ -45,12 +39,10 @@
     "eslint-plugin-prettier": "^5.2.1",
     "eslint-plugin-react": "^7.37.3",
     "eslint-plugin-simple-import-sort": "^12.1.1",
-    "eslint-plugin-storybook": "^0.11.1",
     "globals": "^15.14.0",
     "nodemon": "^2.0.20",
     "pre-commit": "^1.2.2",
     "prettier": "^3.4.2",
-    "storybook-builder-vite": "^0.1.12",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.18.2",
     "vite": "^6.0.5"
