@@ -70,7 +70,8 @@ function App() {
         css={css`
           //height: 100%;
           display: flex;
-        `}>
+        `}
+      >
         <CssBaseline />
         <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
           <Toolbar>
@@ -85,7 +86,8 @@ function App() {
             width: drawerWidth,
             flexShrink: 0,
             [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
-          }}>
+          }}
+        >
           {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
           <Toolbar />
           <Box sx={{ overflow: 'auto' }}>
@@ -108,7 +110,8 @@ function App() {
                   <ListItemButton
                     role={undefined}
                     onClick={handleToggleCollection(item)}
-                    dense>
+                    dense
+                  >
                     <ListItemIcon>
                       <Checkbox
                         edge="start"
@@ -146,7 +149,8 @@ function App() {
             display: flex;
             flex-direction: column;
             width: 100%;
-          `}>
+          `}
+        >
           {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
           <Toolbar />
           <ImageScreen

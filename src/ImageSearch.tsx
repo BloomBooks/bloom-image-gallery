@@ -75,12 +75,14 @@ export const ImageSearch: React.FunctionComponent<{
     <div
       css={css`
         flex-grow: 1;
-      `}>
+      `}
+    >
       <div
         css={css`
           display: flex;
           flex-direction: row;
-        `}>
+        `}
+      >
         <TextField
           id="outlined-basic"
           label="Search"
@@ -88,7 +90,8 @@ export const ImageSearch: React.FunctionComponent<{
           size="small"
           onKeyDown={handleKeyDown}
           onChange={handleChange}
-          sx={{ width: '300px' }}></TextField>
+          sx={{ width: '300px' }}
+        ></TextField>
         {/* MUI IconButton by itself can't be contained. So we use a normal
         Button with no text. */}
         <Button
@@ -108,7 +111,8 @@ export const ImageSearch: React.FunctionComponent<{
               margin: 0; // center the icon
             }
             margin-left: 5px;
-          `}></Button>
+          `}
+        ></Button>
         <Select value={searchLanguage} onChange={handleLanguageChange}>
           {['en', 'es'].map((value, index) => {
             return (

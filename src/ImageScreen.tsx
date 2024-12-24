@@ -27,7 +27,8 @@ export const ImageScreen: React.FunctionComponent<{
         width: 100%;
         height: 500px; // enhance
         padding: 20px;
-      `}>
+      `}
+    >
       <ImageSearch
         collection={props.collection}
         lang={props.lang}

@@ -11,7 +11,8 @@ export const SearchResults: React.FunctionComponent<{
     <div
       css={css`
         flex-grow: 1;
-      `}>
+      `}
+    >
       <ImageList sx={{ width: 550, height: 550 }} cols={3} rowHeight={164}>
         {props.images.map((item) => (
           <ImageListItem key={item} onClick={() => props.handleSelection(item)}>

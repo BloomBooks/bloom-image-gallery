@@ -70,7 +70,8 @@ export const ImageDetails: React.FunctionComponent<{
         flex-direction: column;
         width: 300px;
         margin-left: 10px;
-      `}>
+      `}
+    >
       <img
         id={'details-image'}
         about="s"
@@ -84,7 +85,8 @@ export const ImageDetails: React.FunctionComponent<{
       <div
         css={css`
           text-align: center;
-        `}>
+        `}
+      >
         {imageDimensions}
         <br></br>
         {imageProps.size > 0 ? getUserFriendlySize(imageProps.size) : ''}
