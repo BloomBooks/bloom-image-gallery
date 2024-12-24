@@ -73,6 +73,14 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         const filepath: string = `${req.params.filepath}`;
         this.returnImageProperties(filepath, res);
       });
+    this.app
+      .route("/image-toolbox/pixabay-key")
+      .get((req: express.Request, res: express.Response) => {
+        console.log("Pixabay key requested");
+        console.log(`Pixabay key: ${process.env.ImageToolbox_PixabayKey}`);
+        const apiKey = process.env.ImageToolbox_PixabayKey || "";
+        res.status(200).send({ key: apiKey });
+      });
     return this.app;
   }
 

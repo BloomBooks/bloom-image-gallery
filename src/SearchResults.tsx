@@ -40,13 +40,13 @@ export const SearchResults: React.FunctionComponent<{
         </div>
       ) : (
         <ImageList sx={{ height: 550 }} cols={3} rowHeight={164}>
-          {props.images.map((item) => (
+          {props.images.map((url) => (
             <ImageListItem
-              key={item}
-              onClick={() => props.handleSelection(item)}
+              key={url}
+              onClick={() => props.handleSelection(url)}
               sx={{ position: "relative" }}
             >
-              {!loadedImages.has(item) && (
+              {!loadedImages.has(url) && (
                 <Skeleton
                   variant="rectangular"
                   width={164}
@@ -60,16 +60,16 @@ export const SearchResults: React.FunctionComponent<{
                 />
               )}
               <img
-                src={`http://localhost:5000/image-toolbox/collection-image-file/${item}`}
+                src={url}
                 width={164}
                 height={164}
-                alt={item.substring(item.lastIndexOf("%2f") + 3)}
+                alt={url.substring(url.lastIndexOf("%2f") + 3)}
                 loading="lazy"
-                onLoad={() => handleImageLoad(item)}
+                onLoad={() => handleImageLoad(url)}
                 css={css`
                   object-fit: scale-down;
                   position: relative;
-                  z-index: ${loadedImages.has(item) ? 2 : 0};
+                  z-index: ${loadedImages.has(url) ? 2 : 0};
                 `}
               />
             </ImageListItem>

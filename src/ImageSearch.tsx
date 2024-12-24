@@ -10,10 +10,10 @@ import React, { useEffect } from "react";
 import { SearchResults } from "./SearchResults";
 import SearchIcon from "@mui/icons-material/Search";
 
-import { IImageProvider } from "./ImageProvider";
+import { IImageCollectionProvider } from "./ImageProvider";
 
 export const ImageSearch: React.FunctionComponent<{
-  provider: IImageProvider;
+  provider: IImageCollectionProvider;
   lang: string;
   handleSelection: (item: string) => void;
 }> = (props) => {

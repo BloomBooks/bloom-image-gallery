@@ -23,23 +23,31 @@ import FolderIcon from "@mui/icons-material/Folder";
 import AttributionIcon from "@mui/icons-material/Attribution";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
-import { CollectionImageProvider } from "./ImageProvider";
+import { ImageCollectionProvider } from "./ImageProvider";
+import { PixabayImageProvider } from "./PixabayProvider";
 
 const mdTheme = createTheme();
 const drawerWidth = 200;
 
+interface IImageSource {
+  label: string;
+  id: string;
+}
 function App() {
-  const [imageCollections, setImageCollections] = useState<string[]>([]);
-  const [selectedCollection, setSelectedCollection] = useState<
+  const [imageCollections, setImageCollections] = useState<IImageSource[]>([
+    {
+      label: "Pixabay",
+      id: "pixabay",
+    },
+  ]);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<
     string | undefined
   >(undefined);
-  const [chosenFileUrl, setChosenFileUrl] = useState<string | undefined>(
-    undefined
-  );
+
   const [languages, setLanguages] = useState([] as string[]);
-  const [selectedImage, setSelectedImage] = React.useState("");
+  const [selectedImageUrl, setSelectedImage] = React.useState("");
   const [imageProvider, setImageProvider] = useState<
-    CollectionImageProvider | undefined
+    ImageCollectionProvider | undefined
   >(undefined);
 
   function handleSearchSelection(item: string) {
@@ -47,34 +55,73 @@ function App() {
   }
 
   useEffect(() => {
+    // choose the first collection
+    if (imageCollections.length > 0) {
+      setSelectedCollectionId(imageCollections[0].id);
+    }
+  }, [imageCollections]);
+
+  useEffect(() => {
     axios
       .get(`http://localhost:5000/image-toolbox/collections`)
       .then((response) => {
-        setImageCollections(response.data.collections);
+        // at the moment all we're getting is a single name
+        const collections: Array<IImageSource> = response.data.collections.map(
+          (c: any) => {
+            return { label: c, id: c };
+          }
+        );
+        // push these onto the the imageCollections state, prevent duplicates (chat claims react dev mode does it on purpose?)
+        setImageCollections((prev) => {
+          const newCollections = collections.filter(
+            (c) => !prev.find((p) => p.id === c.id)
+          );
+          return [...prev, ...newCollections];
+        });
+
         setLanguages(response.data.languages);
+        // Select the first collection if available (just for convenience while coding)
+        // if (response.data.collections.length > 0) {
+        //   setSelectedCollectionId(collections[0].id);
+        // }
       })
       .catch((reason) => {
         console.log(`axios call image-toolbox/collections failed: ${reason}`);
-        setImageCollections([]);
+        //setImageCollections([]);
       });
   }, []);
 
   useEffect(() => {
     setSelectedImage("");
-  }, [selectedCollection]);
+  }, [selectedCollectionId]);
 
   useEffect(() => {
-    if (selectedCollection) {
-      setImageProvider(new CollectionImageProvider(selectedCollection));
+    if (selectedCollectionId) {
+      const selectedCollection = imageCollections.find(
+        (c) => c.id === selectedCollectionId
+      );
+      if (!selectedCollection) {
+        throw new Error(`Collection ${selectedCollectionId} not found`);
+      }
+
+      if (selectedCollectionId === "pixabay") {
+        setImageProvider(new PixabayImageProvider());
+      } else {
+        setImageProvider(
+          new ImageCollectionProvider(
+            selectedCollection.id,
+            selectedCollection.label
+          )
+        );
+      }
     } else {
       setImageProvider(undefined);
     }
-  }, [selectedCollection]);
+  }, [selectedCollectionId]);
 
-  function handleSelectCollection(value: string) {
+  function handleSelectCollection(id: string) {
     return () => {
-      setSelectedCollection(selectedCollection === value ? undefined : value);
-      setChosenFileUrl(undefined);
+      setSelectedCollectionId(id);
     };
   }
 
@@ -131,7 +178,7 @@ function App() {
                       });
                       const file = await fileHandle.getFile();
                       const url = URL.createObjectURL(file);
-                      setChosenFileUrl(url);
+                      setSelectedImage(url);
                     } catch (error) {
                       console.error(error);
                     }
@@ -143,14 +190,14 @@ function App() {
                   <ListItemText primary={"Open File..."} />
                 </ListItemButton>
               </ListItem>
-              {imageCollections?.map((item) => (
+              {imageCollections?.map((collection) => (
                 <ListItemButton
-                  key={item}
-                  onClick={handleSelectCollection(item)}
-                  selected={item === selectedCollection}
+                  key={collection.id}
+                  onClick={handleSelectCollection(collection.id)}
+                  selected={collection.id === selectedCollectionId}
                   dense
                 >
-                  <ListItemText primary={item} />
+                  <ListItemText primary={collection.label}></ListItemText>
                 </ListItemButton>
               ))}
             </List>
@@ -176,7 +223,7 @@ function App() {
         >
           {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
           <Toolbar />
-          {selectedCollection && imageProvider && (
+          {selectedCollectionId && imageProvider && (
             <div
               css={css`
                 display: flex;
@@ -193,9 +240,8 @@ function App() {
               />
               <Divider orientation="vertical" flexItem />
               <ImageDetails
-                collection={selectedCollection}
-                imageFile={selectedImage}
-                chosenFileUrl={chosenFileUrl}
+                collectionId={selectedCollectionId}
+                url={selectedImageUrl}
               />
             </div>
           )}

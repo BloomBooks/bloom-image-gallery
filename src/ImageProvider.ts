@@ -1,22 +1,29 @@
 import axios from "axios";
 
-export interface IImageProvider {
+export interface IImageCollectionProvider {
+  label: string;
   search(searchTerm: string, language: string): Promise<string[]>;
 }
 
-export class CollectionImageProvider implements IImageProvider {
-  constructor(private collection: string) {}
+export class ImageCollectionProvider implements IImageCollectionProvider {
+  collectionId: string;
+  label: string;
+  constructor(label: string, collectionId: string) {
+    this.label = label;
+    this.collectionId = collectionId;
+  }
 
   async search(searchTerm: string, language: string): Promise<string[]> {
     const response = await axios.get(
-      `http://localhost:5000/image-toolbox/search/${this.collection.replaceAll(
+      `http://localhost:5000/image-toolbox/search/${this.collectionId.replaceAll(
         " ",
         "%20"
       )}/${language}/${searchTerm.replaceAll(" ", "%20")}`
     );
     // Map the response to include the collection name in each path
     return (response.data as string[]).map(
-      (path) => `${this.collection}/${path}`
+      (path) =>
+        `http://localhost:5000/image-toolbox/collection-image-file/${this.collectionId}/${path}`
     );
   }
 }

@@ -3,27 +3,16 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 
 export const ImageDetails: React.FunctionComponent<{
-  collection?: string;
-  imageFile?: string;
-  chosenFileUrl?: string;
+  collectionId?: string;
+  url?: string;
 }> = (props) => {
   const [imageProps, setImageProps] = useState({ size: 0, type: "" });
   const [imageDimensions, setImageDimensions] = useState("");
 
   let uriSearch: string = "";
-  let imgSrc: string = "";
-  if (props.collection && props.imageFile) {
-    uriSearch = `http://localhost:5000/image-toolbox/collection-image-properties/${props.collection.replaceAll(
-      " ",
-      "%20"
-    )}/${props.imageFile}`;
-    imgSrc = `http://localhost:5000/image-toolbox/collection-image-file/${props.collection}/${props.imageFile}`;
-  } else if (props.chosenFileUrl) {
-    imgSrc = props.chosenFileUrl;
-  }
 
   useEffect(() => {
-    if (props.collection && props.imageFile) {
+    if (props.collectionId && props.url) {
       axios
         .get(uriSearch)
         .then((response) => {
@@ -40,7 +29,7 @@ export const ImageDetails: React.FunctionComponent<{
       setImageProps({ size: 0, type: "" });
       setImageDimensions("");
     }
-  }, [props.collection, props.imageFile]);
+  }, [props.collectionId, props.url]);
 
   function imageLoaded(event: React.SyntheticEvent<HTMLImageElement, Event>) {
     const image = document.getElementById("details-image") as HTMLImageElement;
@@ -78,8 +67,7 @@ export const ImageDetails: React.FunctionComponent<{
       <img
         id={"details-image"}
         onLoad={imageLoaded}
-        src={imgSrc}
-        alt={imgSrc}
+        src={props.url}
         css={css`
           margin-bottom: 15px;
         `}
