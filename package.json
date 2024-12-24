@@ -2,7 +2,7 @@
   "name": "vite-reactts-eslint-prettier",
   "version": "0.0.0",
   "scripts": {
-    "client": "start http://localhost:3000 && vite",
+    "client": "start http://localhost:5173 && vite",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
     "server": "nodemon apiServer/server.js",
     "build": "tsc && vite build && tsc -p server/tsconfig.json",
@@ -51,11 +51,15 @@
     "eslint-plugin-storybook": "^0.5.5",
     "nodemon": "^2.0.20",
     "pre-commit": "^1.2.2",
-    "prettier": "^2.3.2",
+    "prettier": "^3.4.2",
     "storybook-builder-vite": "^0.1.12",
-    "typescript": "^4.3.5",
-    "vite": "^2.4.1"
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
   },
   "pre-commit": "lint",
-  "license": "MIT"
+  "license": "MIT",
+  "volta": {
+    "node": "20.15.1",
+    "yarn": "1.22.19"
+  }
 }
