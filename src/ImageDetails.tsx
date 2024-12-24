@@ -1,29 +1,29 @@
-import { css } from '@emotion/react';
-import axios from 'axios';
-import React, { useState, useEffect } from 'react';
+import { css } from "@emotion/react";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
 
 export const ImageDetails: React.FunctionComponent<{
   collection?: string;
   imageFile?: string;
   chosenFile?: string;
 }> = (props) => {
-  const [imageProps, setImageProps] = useState({ size: 0, type: '' });
-  const [imageDimensions, setImageDimensions] = useState('');
+  const [imageProps, setImageProps] = useState({ size: 0, type: "" });
+  const [imageDimensions, setImageDimensions] = useState("");
 
-  let uriSearch: string = '';
-  let imgSrc: string = '';
+  let uriSearch: string = "";
+  let imgSrc: string = "";
   if (props.collection && props.imageFile) {
     uriSearch = `http://localhost:5000/image-toolbox/collection-image-properties/${props.collection.replaceAll(
-      ' ',
-      '%20',
+      " ",
+      "%20"
     )}/${props.imageFile}`;
     imgSrc = `http://localhost:5000/image-toolbox/collection-image-file/${props.collection}/${props.imageFile}`;
   } else if (props.chosenFile) {
     uriSearch = `http://localhost:5000/image-toolbox/image-properties/${encodeURIComponent(
-      props.chosenFile,
+      props.chosenFile
     )}`;
     imgSrc = `http://localhost:5000/image-toolbox/image-file/${encodeURIComponent(
-      props.chosenFile,
+      props.chosenFile
     )}`;
   }
 
@@ -35,22 +35,26 @@ export const ImageDetails: React.FunctionComponent<{
           setImageProps(response.data);
         })
         .catch((reason) => {
-          console.log(`axios call image-toolbox/image-properties failed: ${reason}`);
-          setImageProps({ size: 0, type: '' });
-          setImageDimensions('');
+          console.log(
+            `axios call image-toolbox/image-properties failed: ${reason}`
+          );
+          setImageProps({ size: 0, type: "" });
+          setImageDimensions("");
         });
     } else {
-      setImageProps({ size: 0, type: '' });
-      setImageDimensions('');
+      setImageProps({ size: 0, type: "" });
+      setImageDimensions("");
     }
   }, [props.collection, props.imageFile, props.chosenFile]);
 
   function imageLoaded(event: React.SyntheticEvent<HTMLImageElement, Event>) {
-    const image = document.getElementById('details-image') as HTMLImageElement;
+    const image = document.getElementById("details-image") as HTMLImageElement;
     if (image) {
-      setImageDimensions(`${image.naturalWidth} x ${image.naturalHeight} pixels`);
+      setImageDimensions(
+        `${image.naturalWidth} x ${image.naturalHeight} pixels`
+      );
     } else {
-      setImageDimensions('');
+      setImageDimensions("");
     }
   }
 
@@ -58,9 +62,13 @@ export const ImageDetails: React.FunctionComponent<{
     const ksize = size / 1024.0;
     if (ksize < 10) return size.toString();
     if (ksize < 1024)
-      return Number(Math.round(parseFloat(`${ksize}e2`)) + 'e-2').toString() + 'K';
+      return (
+        Number(Math.round(parseFloat(`${ksize}e2`)) + "e-2").toString() + "K"
+      );
     const msize = ksize / 1024.0;
-    return Number(Math.round(parseFloat(`${msize}e2`)) + 'e-2').toString() + 'M';
+    return (
+      Number(Math.round(parseFloat(`${msize}e2`)) + "e-2").toString() + "M"
+    );
   }
 
   return (
@@ -73,8 +81,7 @@ export const ImageDetails: React.FunctionComponent<{
       `}
     >
       <img
-        id={'details-image'}
-        about="s"
+        id={"details-image"}
         onLoad={imageLoaded}
         src={imgSrc}
         alt={imgSrc}
@@ -89,7 +96,7 @@ export const ImageDetails: React.FunctionComponent<{
       >
         {imageDimensions}
         <br></br>
-        {imageProps.size > 0 ? getUserFriendlySize(imageProps.size) : ''}
+        {imageProps.size > 0 ? getUserFriendlySize(imageProps.size) : ""}
         <br></br>
         {imageProps.type}
       </div>

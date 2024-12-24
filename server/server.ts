@@ -1,9 +1,9 @@
-import express from 'express';
-import * as http from 'http';
-import cors from 'cors';
+import express from "express";
+import * as http from "http";
+import cors from "cors";
 
-import { CommonRoutesConfig } from './common/common.routes.config.js';
-import { ImageToolboxRoutes } from './imagetoolbox/imagetoolbox.routes.config.js';
+import { CommonRoutesConfig } from "./common/common.routes.config.js";
+import { ImageToolboxRoutes } from "./imagetoolbox/imagetoolbox.routes.config.js";
 
 const app: express.Application = express();
 const server: http.Server = http.createServer(app);
@@ -22,7 +22,7 @@ routes.push(new ImageToolboxRoutes(app));
 
 // this is a simple route to make sure everything is working properly
 const runningMessage = `Server running at http://localhost:${port}`;
-app.get('/', (req: express.Request, res: express.Response) => {
+app.get("/", (req: express.Request, res: express.Response) => {
   res.status(200).send(runningMessage);
 });
 

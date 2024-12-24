@@ -1,15 +1,21 @@
-import { css } from '@emotion/react';
-import { Button, TextField, Select, MenuItem, SelectChangeEvent } from '@mui/material';
-import React, { useEffect } from 'react';
-import { SearchResults } from './SearchResults';
-import SearchIcon from '@mui/icons-material/Search';
-import axios from 'axios';
+import { css } from "@emotion/react";
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+} from "@mui/material";
+import React, { useEffect } from "react";
+import { SearchResults } from "./SearchResults";
+import SearchIcon from "@mui/icons-material/Search";
+import axios from "axios";
 export const ImageSearch: React.FunctionComponent<{
   collection: string;
   lang: string;
   handleSelection: (item: string) => void;
 }> = (props) => {
-  const [searchTerm, setSearchTerm] = React.useState('');
+  const [searchTerm, setSearchTerm] = React.useState("");
   const [searchLanguage, setSearchLanguage] = React.useState(props.lang);
   const [imagesFound, setImagesFound] = React.useState([] as string[]);
 
@@ -17,7 +23,7 @@ export const ImageSearch: React.FunctionComponent<{
     setSearchTerm(event.target.value);
   };
   const handleKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (event.key === 'Enter') {
+    if (event.key === "Enter") {
       searchForImages();
     }
   };
@@ -33,13 +39,13 @@ export const ImageSearch: React.FunctionComponent<{
 
   function searchForImages(): void {
     const uriSearch = `http://localhost:5000/image-toolbox/search/${props.collection.replaceAll(
-      ' ',
-      '%20',
-    )}/${searchLanguage}/${searchTerm.replaceAll(' ', '%20')}`;
+      " ",
+      "%20",
+    )}/${searchLanguage}/${searchTerm.replaceAll(" ", "%20")}`;
     axios
       .get(uriSearch)
       .then((response) => {
-        props.handleSelection('');
+        props.handleSelection("");
         const images = response.data as string[];
         if (images) {
           setImagesFound(images);
@@ -55,10 +61,10 @@ export const ImageSearch: React.FunctionComponent<{
 
   function getLanguageNameFromTag(tag: string): string {
     switch (tag) {
-      case 'en':
-        return 'English';
-      case 'es':
-        return 'Spanish';
+      case "en":
+        return "English";
+      case "es":
+        return "Spanish";
       default:
         return tag;
     }
@@ -66,9 +72,9 @@ export const ImageSearch: React.FunctionComponent<{
 
   useEffect(() => {
     setImagesFound([]);
-    const input = document.getElementById('outlined-basic') as HTMLInputElement;
-    if (input) input.value = '';
-    setSearchTerm('');
+    const input = document.getElementById("outlined-basic") as HTMLInputElement;
+    if (input) input.value = "";
+    setSearchTerm("");
   }, [props.collection, props.lang]);
 
   return (
@@ -90,7 +96,7 @@ export const ImageSearch: React.FunctionComponent<{
           size="small"
           onKeyDown={handleKeyDown}
           onChange={handleChange}
-          sx={{ width: '300px' }}
+          sx={{ width: "300px" }}
         ></TextField>
         {/* MUI IconButton by itself can't be contained. So we use a normal
         Button with no text. */}
@@ -114,14 +120,14 @@ export const ImageSearch: React.FunctionComponent<{
           `}
         ></Button>
         <Select value={searchLanguage} onChange={handleLanguageChange}>
-          {['en', 'es'].map((value, index) => {
+          {["en", "es"].map((value, index) => {
             return (
               <MenuItem key={value} value={value}>
                 {getLanguageNameFromTag(value)}
               </MenuItem>
             );
           })}
-        </Select>{' '}
+        </Select>{" "}
       </div>
       <SearchResults
         collection={props.collection}

@@ -1,6 +1,6 @@
-import { css } from '@emotion/react';
-import { ImageList, ImageListItem } from '@mui/material';
-import React from 'react';
+import { css } from "@emotion/react";
+import { ImageList, ImageListItem } from "@mui/material";
+import React from "react";
 
 export const SearchResults: React.FunctionComponent<{
   collection: string;
@@ -20,7 +20,7 @@ export const SearchResults: React.FunctionComponent<{
               src={`http://localhost:5000/image-toolbox/collection-image-file/${props.collection}/${item}`}
               width={164}
               height={164}
-              alt={item.substring(item.lastIndexOf('%2f') + 3)}
+              alt={item.substring(item.lastIndexOf("%2f") + 3)}
               loading="lazy"
               css={css`
                 object-fit: scale-down;
