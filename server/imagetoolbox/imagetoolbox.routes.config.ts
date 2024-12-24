@@ -2,7 +2,6 @@ import { CommonRoutesConfig } from "../common/common.routes.config.js";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { spawn } from "child_process";
 
 // This class implements an API for accessing the file system looking for pictures.
 // Two types are search are provided: browsing an image collection like Art of Reading
@@ -63,34 +62,6 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         this.returnImageProperties(filepath, res);
       });
     this.app
-      .route("/image-toolbox/file-dialog")
-      .get((req: express.Request, res: express.Response) => {
-        // This hack is extremely Windows-centric.  But for our purposes at the moment, it will have to do.
-        // See https://stackoverflow.com/questions/51655571/how-to-open-a-select-folder-dialog-from-nodejs-server-side-not-browser
-        // and https://4sysops.com/archives/how-to-create-an-open-file-folder-dialog-box-with-powershell/
-        const psScript = `Add-Type -AssemblyName System.Windows.Forms
-                $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
-                    InitialDirectory = [Environment]::GetFolderPath('MyPictures') 
-                    Filter = 'Image Files(*.png;*.bmp;*.jpg;*.gif)|*.png;*.bmp;*.jpg;*.jpeg;*.gif|All files (*.*)|*.*'
-                }
-                $null = $FileBrowser.ShowDialog()
-                $FileBrowser.FileName
-                `;
-        let filepath: string = "";
-        const child = spawn("powershell.exe", [psScript]);
-        child.stdout.on("data", function (data: string) {
-          filepath = data;
-        });
-        child.stderr.on("data", function (data: string) {
-          //this script block will get the output of the PS script
-          console.log("Powershell Errors: " + data);
-        });
-        child.on("exit", function () {
-          res.status(200).type("text/plain").send(filepath);
-        });
-        child.stdin.end(); //end input
-      });
-    this.app
       .route("/image-toolbox/image-file/:filepath")
       .get((req: express.Request, res: express.Response) => {
         const filepath: string = `${req.params.filepath}`;
@@ -107,7 +78,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
 
   private returnImageFileContent(
     filepath: string,
-    res: express.Response<any, Record<string, any>>,
+    res: express.Response<any, Record<string, any>>
   ) {
     fs.readFile(filepath, (err, data) => {
       if (err) {
@@ -121,7 +92,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
 
   private returnImageProperties(
     filepath: string,
-    res: express.Response<any, Record<string, any>>,
+    res: express.Response<any, Record<string, any>>
   ): void {
     try {
       const stats = fs.statSync(filepath);
@@ -172,7 +143,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         entry,
         basepath,
         subfolder,
-        filename,
+        filename
       );
     }
     this.indexes.set(collection, collectionMap);
@@ -185,7 +156,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
     entry: string[],
     basepath: string,
     subfolder: string,
-    filename: string,
+    filename: string
   ): boolean {
     const subpath = `${subfolder}\\${filename}`;
     const filepath = `${basepath}\\${subpath}`;
@@ -196,7 +167,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         entry,
         indexSpanish,
         collectionMap,
-        subpath.replace(/\\/g, "%2f"),
+        subpath.replace(/\\/g, "%2f")
       );
       return true;
     } catch (err) {
@@ -215,7 +186,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
                 entry,
                 basepath,
                 subsubfolder,
-                filename,
+                filename
               )
             )
               return true;
@@ -233,7 +204,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
     entry: string[],
     indexSpanish: number,
     collectionIndex: Map<string, Map<string, string[]>>,
-    subpath: string,
+    subpath: string
   ) {
     const englishTags =
       indexEnglish >= 0 && indexEnglish < entry.length

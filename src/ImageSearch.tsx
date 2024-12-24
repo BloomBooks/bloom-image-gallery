@@ -5,14 +5,15 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
-  CircularProgress,
 } from "@mui/material";
 import React, { useEffect } from "react";
 import { SearchResults } from "./SearchResults";
 import SearchIcon from "@mui/icons-material/Search";
-import axios from "axios";
+
+import { IImageProvider } from "./ImageProvider";
+
 export const ImageSearch: React.FunctionComponent<{
-  collection: string;
+  provider: IImageProvider;
   lang: string;
   handleSelection: (item: string) => void;
 }> = (props) => {
@@ -41,15 +42,10 @@ export const ImageSearch: React.FunctionComponent<{
 
   function searchForImages(): void {
     setIsLoading(true);
-    const uriSearch = `http://localhost:5000/image-toolbox/search/${props.collection.replaceAll(
-      " ",
-      "%20"
-    )}/${searchLanguage}/${searchTerm.replaceAll(" ", "%20")}`;
-    axios
-      .get(uriSearch)
-      .then((response) => {
+    props.provider
+      .search(searchTerm, searchLanguage)
+      .then((images) => {
         props.handleSelection("");
-        const images = response.data as string[];
         if (images) {
           setImagesFound(images);
         } else {
@@ -58,7 +54,7 @@ export const ImageSearch: React.FunctionComponent<{
         setIsLoading(false);
       })
       .catch((reason) => {
-        console.log(`axios call image-toolbox/collections failed: ${reason}`);
+        console.log(`Image search failed: ${reason}`);
         setImagesFound([]);
         setIsLoading(false);
       });
@@ -81,7 +77,7 @@ export const ImageSearch: React.FunctionComponent<{
     if (searchTerm !== "tree") {
       setSearchTerm("");
     }
-  }, [props.collection, props.lang]);
+  }, [props.provider, props.lang]);
 
   return (
     <div
@@ -143,7 +139,6 @@ export const ImageSearch: React.FunctionComponent<{
         </Select>{" "}
       </div>
       <SearchResults
-        collection={props.collection}
         images={imagesFound}
         handleSelection={props.handleSelection}
         isLoading={isLoading}

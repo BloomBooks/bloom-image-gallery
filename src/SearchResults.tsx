@@ -3,7 +3,6 @@ import { ImageList, ImageListItem, CircularProgress } from "@mui/material";
 import React from "react";
 
 export const SearchResults: React.FunctionComponent<{
-  collection: string;
   images: string[];
   handleSelection: (item: string) => void;
   isLoading: boolean;
@@ -36,7 +35,7 @@ export const SearchResults: React.FunctionComponent<{
               onClick={() => props.handleSelection(item)}
             >
               <img
-                src={`http://localhost:5000/image-toolbox/collection-image-file/${props.collection}/${item}`}
+                src={`http://localhost:5000/image-toolbox/collection-image-file/${item}`}
                 width={164}
                 height={164}
                 alt={item.substring(item.lastIndexOf("%2f") + 3)}

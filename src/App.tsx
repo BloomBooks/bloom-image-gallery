@@ -1,5 +1,4 @@
 /// <reference types="@types/wicg-file-system-access" />
-// import "./App.css";
 import { css } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -21,28 +20,37 @@ import {
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import FolderIcon from "@mui/icons-material/Folder";
-import CropIcon from "@mui/icons-material/Crop";
 import AttributionIcon from "@mui/icons-material/Attribution";
-import { ImageScreen } from "./ImageScreen";
+import { ImageDetails } from "./ImageDetails";
+import { ImageSearch } from "./ImageSearch";
+import { CollectionImageProvider } from "./ImageProvider";
+
 const mdTheme = createTheme();
 const drawerWidth = 200;
 
 function App() {
-  const [imageCollections, setImageCollections] = useState([] as string[]);
-  const [checkedCollection, setCheckedCollection] = useState("");
+  const [imageCollections, setImageCollections] = useState<string[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState<
+    string | undefined
+  >(undefined);
   const [chosenFileUrl, setChosenFileUrl] = useState<string | undefined>(
     undefined
   );
   const [languages, setLanguages] = useState([] as string[]);
+  const [selectedImage, setSelectedImage] = React.useState("");
+  const [imageProvider, setImageProvider] = useState<
+    CollectionImageProvider | undefined
+  >(undefined);
+
+  function handleSearchSelection(item: string) {
+    setSelectedImage(item);
+  }
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/image-toolbox/collections")
+      .get(`http://localhost:5000/image-toolbox/collections`)
       .then((response) => {
         setImageCollections(response.data.collections);
-        if (response.data.collections.length > 0) {
-          setCheckedCollection(response.data.collections[0]);
-        }
         setLanguages(response.data.languages);
       })
       .catch((reason) => {
@@ -51,9 +59,21 @@ function App() {
       });
   }, []);
 
-  function handleToggleCollection(value: string) {
+  useEffect(() => {
+    setSelectedImage("");
+  }, [selectedCollection]);
+
+  useEffect(() => {
+    if (selectedCollection) {
+      setImageProvider(new CollectionImageProvider(selectedCollection));
+    } else {
+      setImageProvider(undefined);
+    }
+  }, [selectedCollection]);
+
+  function handleSelectCollection(value: string) {
     return () => {
-      setCheckedCollection(value);
+      setSelectedCollection(selectedCollection === value ? undefined : value);
       setChosenFileUrl(undefined);
     };
   }
@@ -109,7 +129,6 @@ function App() {
                           },
                         ],
                       });
-                      // set div to a png of the file
                       const file = await fileHandle.getFile();
                       const url = URL.createObjectURL(file);
                       setChosenFileUrl(url);
@@ -124,21 +143,13 @@ function App() {
                   <ListItemText primary={"Open File..."} />
                 </ListItemButton>
               </ListItem>
-              {imageCollections.map((item) => (
+              {imageCollections?.map((item) => (
                 <ListItemButton
                   key={item}
-                  role={undefined}
-                  onClick={handleToggleCollection(item)}
+                  onClick={handleSelectCollection(item)}
+                  selected={item === selectedCollection}
                   dense
                 >
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={item === checkedCollection}
-                      tabIndex={-1}
-                      disableRipple
-                    />
-                  </ListItemIcon>
                   <ListItemText primary={item} />
                 </ListItemButton>
               ))}
@@ -150,12 +161,6 @@ function App() {
                   <AttributionIcon />
                 </ListItemIcon>
                 <ListItemText primary={"Give Credit"} />
-              </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CropIcon />
-                </ListItemIcon>
-                <ListItemText primary={"Adjust"} />
               </ListItem>
             </List>
           </Box>
@@ -171,11 +176,29 @@ function App() {
         >
           {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
           <Toolbar />
-          <ImageScreen
-            collection={checkedCollection}
-            lang={"en"}
-            chosenFileUrl={chosenFileUrl}
-          />
+          {selectedCollection && imageProvider && (
+            <div
+              css={css`
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                height: 500px;
+                padding: 20px;
+              `}
+            >
+              <ImageSearch
+                provider={imageProvider}
+                lang={"en"}
+                handleSelection={handleSearchSelection}
+              />
+              <Divider orientation="vertical" flexItem />
+              <ImageDetails
+                collection={selectedCollection}
+                imageFile={selectedImage}
+                chosenFileUrl={chosenFileUrl}
+              />
+            </div>
+          )}
         </Box>
       </Box>
     </ThemeProvider>
