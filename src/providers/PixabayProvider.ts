@@ -1,5 +1,7 @@
 import axios from "axios";
 import { IImageCollectionProvider } from "../ImageSearch";
+import { useEffect } from "react";
+import { IImageProvider } from "./provider";
 
 interface PixabayImage {
   id: number;
@@ -8,6 +10,17 @@ interface PixabayImage {
 
 interface PixabayResponse {
   hits: PixabayImage[];
+}
+
+export function usePixbay(collections: IImageProvider[]) {
+  useEffect(() => {
+    if (!collections.some((c) => c.id === "pixabay")) {
+      collections.push({
+        label: "Pixabay",
+        id: "pixabay",
+      });
+    }
+  }, []);
 }
 
 export class PixabayImageProvider implements IImageCollectionProvider {

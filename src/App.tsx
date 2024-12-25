@@ -16,82 +16,42 @@ import {
   ListItemText,
   Divider,
   ListItemButton,
-  Checkbox,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import FolderIcon from "@mui/icons-material/Folder";
 import AttributionIcon from "@mui/icons-material/Attribution";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
-import { LocalCollectionProvider } from "./providers/LocalCollectionProvider";
-import { PixabayImageProvider } from "./providers/PixabayProvider";
+import {
+  LocalCollectionProvider,
+  useLocalCollections,
+} from "./providers/LocalCollectionProvider";
+import { PixabayImageProvider, usePixbay } from "./providers/PixabayProvider";
+import { IImageProvider } from "./providers/provider";
 
 const mdTheme = createTheme();
 const drawerWidth = 200;
 
-interface IImageSource {
-  label: string;
-  id: string;
-}
 function App() {
-  const [imageCollections, setImageCollections] = useState<IImageSource[]>([
-    {
-      label: "Pixabay",
-      id: "pixabay",
-    },
-  ]);
+  const [imageCollections] = useState<IImageProvider[]>([]);
   const [selectedCollectionId, setSelectedCollectionId] = useState<
     string | undefined
   >(undefined);
 
-  const [languages, setLanguages] = useState([] as string[]);
   const [selectedImageUrl, setSelectedImage] = React.useState("");
   const [imageProvider, setImageProvider] = useState<
     LocalCollectionProvider | undefined
   >(undefined);
 
-  function handleSearchSelection(item: string) {
-    setSelectedImage(item);
-  }
+  usePixbay(imageCollections);
+  useLocalCollections(imageCollections);
 
   useEffect(() => {
-    // choose the first collection
-    if (imageCollections.length > 0) {
+    // select an initial collection
+    if (!selectedCollectionId && imageCollections.length > 0) {
       setSelectedCollectionId(imageCollections[0].id);
     }
   }, [imageCollections]);
-
-  useEffect(() => {
-    axios
-      .get(`http://localhost:5000/image-toolbox/local-collections/collections`)
-      .then((response) => {
-        // at the moment all we're getting is a single name
-        const collections: Array<IImageSource> = response.data.collections.map(
-          (c: any) => {
-            return { label: c, id: c };
-          }
-        );
-        // push these onto the the imageCollections state, prevent duplicates (chat claims react dev mode does it on purpose?)
-        setImageCollections((prev) => {
-          const newCollections = collections.filter(
-            (c) => !prev.find((p) => p.id === c.id)
-          );
-          return [...prev, ...newCollections];
-        });
-
-        setLanguages(response.data.languages);
-        // Select the first collection if available (just for convenience while coding)
-        // if (response.data.collections.length > 0) {
-        //   setSelectedCollectionId(collections[0].id);
-        // }
-      })
-      .catch((reason) => {
-        console.log(
-          `axios call image-toolbox/local-collections/collections failed: ${reason}`
-        );
-        //setImageCollections([]);
-      });
-  }, []);
 
   useEffect(() => {
     setSelectedImage("");
@@ -238,7 +198,7 @@ function App() {
               <ImageSearch
                 provider={imageProvider}
                 lang={"en"}
-                handleSelection={handleSearchSelection}
+                handleSelection={setSelectedImage}
               />
               <Divider orientation="vertical" flexItem />
               <ImageDetails
