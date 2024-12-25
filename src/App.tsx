@@ -23,8 +23,8 @@ import FolderIcon from "@mui/icons-material/Folder";
 import AttributionIcon from "@mui/icons-material/Attribution";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
-import { ImageCollectionProvider } from "./ImageProvider";
-import { PixabayImageProvider } from "./PixabayProvider";
+import { LocalCollectionProvider } from "./providers/LocalCollectionProvider";
+import { PixabayImageProvider } from "./providers/PixabayProvider";
 
 const mdTheme = createTheme();
 const drawerWidth = 200;
@@ -47,7 +47,7 @@ function App() {
   const [languages, setLanguages] = useState([] as string[]);
   const [selectedImageUrl, setSelectedImage] = React.useState("");
   const [imageProvider, setImageProvider] = useState<
-    ImageCollectionProvider | undefined
+    LocalCollectionProvider | undefined
   >(undefined);
 
   function handleSearchSelection(item: string) {
@@ -63,7 +63,7 @@ function App() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/image-toolbox/collections`)
+      .get(`http://localhost:5000/image-toolbox/local-collections/collections`)
       .then((response) => {
         // at the moment all we're getting is a single name
         const collections: Array<IImageSource> = response.data.collections.map(
@@ -86,7 +86,9 @@ function App() {
         // }
       })
       .catch((reason) => {
-        console.log(`axios call image-toolbox/collections failed: ${reason}`);
+        console.log(
+          `axios call image-toolbox/local-collections/collections failed: ${reason}`
+        );
         //setImageCollections([]);
       });
   }, []);
@@ -108,7 +110,7 @@ function App() {
         setImageProvider(new PixabayImageProvider());
       } else {
         setImageProvider(
-          new ImageCollectionProvider(
+          new LocalCollectionProvider(
             selectedCollection.id,
             selectedCollection.label
           )

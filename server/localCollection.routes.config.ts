@@ -1,4 +1,4 @@
-import { CommonRoutesConfig } from "../common/common.routes.config.js";
+import { CommonRoutesConfig } from "./common.routes.config.js";
 import express from "express";
 import fs from "fs";
 import path from "path";
@@ -6,9 +6,9 @@ import path from "path";
 // This class implements an API for accessing the file system looking for pictures.
 // Two types are search are provided: browsing an image collection like Art of Reading
 // or using a file browser to randomly find an image file.
-export class ImageToolboxRoutes extends CommonRoutesConfig {
-  constructor(app: express.Application) {
-    super(app, "ImageToolboxRoutes");
+export class LocalCollectionRoutes extends CommonRoutesConfig {
+  constructor(app: express.Router) {
+    super(app, "LocalCollectionRoutes");
   }
 
   // This is the base location for storing image collections.
@@ -19,7 +19,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
 
   configureRoutes() {
     this.app
-      .route(`/image-toolbox/collections`)
+      .route(`/local-collections/collections`)
       .get((req: express.Request, res: express.Response) => {
         fs.readdir(this.baseFolder, (err, entries) => {
           if (err) {
@@ -40,7 +40,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         });
       });
     this.app
-      .route("/image-toolbox/search/:collection/:lang/:term")
+      .route("/local-collections/search/:collection/:lang/:term")
       .get((req: express.Request, res: express.Response) => {
         const files =
           this.indexes
@@ -50,36 +50,28 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         res.status(200).send(files);
       });
     this.app
-      .route("/image-toolbox/collection-image-file/:collection/:file")
+      .route("/local-collections/collection-image-file/:collection/:file")
       .get((req: express.Request, res: express.Response) => {
         const filepath = `${this.baseFolder}\\${req.params.collection}\\images\\${req.params.file}`;
         this.returnImageFileContent(filepath, res);
       });
     this.app
-      .route("/image-toolbox/collection-image-properties/:collection/:file")
+      .route("/local-collections/collection-image-properties/:collection/:file")
       .get((req: express.Request, res: express.Response) => {
         const filepath = `${this.baseFolder}\\${req.params.collection}\\images\\${req.params.file}`;
         this.returnImageProperties(filepath, res);
       });
     this.app
-      .route("/image-toolbox/image-file/:filepath")
+      .route("/local-collections/image-file/:filepath")
       .get((req: express.Request, res: express.Response) => {
         const filepath: string = `${req.params.filepath}`;
         this.returnImageFileContent(filepath, res);
       });
     this.app
-      .route("/image-toolbox/image-properties/:filepath")
+      .route("/local-collections/image-properties/:filepath")
       .get((req: express.Request, res: express.Response) => {
         const filepath: string = `${req.params.filepath}`;
         this.returnImageProperties(filepath, res);
-      });
-    this.app
-      .route("/image-toolbox/pixabay-key")
-      .get((req: express.Request, res: express.Response) => {
-        console.log("Pixabay key requested");
-        console.log(`Pixabay key: ${process.env.ImageToolbox_PixabayKey}`);
-        const apiKey = process.env.ImageToolbox_PixabayKey || "";
-        res.status(200).send({ key: apiKey });
       });
     return this.app;
   }

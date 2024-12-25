@@ -1,5 +1,5 @@
 import axios from "axios";
-import { IImageCollectionProvider } from "./ImageProvider";
+import { IImageCollectionProvider } from "../ImageSearch";
 
 interface PixabayImage {
   id: number;
@@ -23,7 +23,7 @@ export class PixabayImageProvider implements IImageCollectionProvider {
   private async fetchApiKey() {
     try {
       const response = await axios.get(
-        "http://localhost:5000/image-toolbox/pixabay-key"
+        "http://localhost:5000/image-toolbox/api-key/pixabay"
       );
       this.apiKey = response.data.key;
     } catch (error) {
@@ -37,10 +37,10 @@ export class PixabayImageProvider implements IImageCollectionProvider {
       await this.fetchApiKey();
     }
 
+    const perPage = searchTerm.toLowerCase() === "tree" ? 4 : 20;
+    const term = encodeURIComponent(searchTerm);
     const response = await axios.get<PixabayResponse>(
-      `https://pixabay.com/api/?key=${this.apiKey}&q=${encodeURIComponent(
-        searchTerm
-      )}`
+      `https://pixabay.com/api/?key=${this.apiKey}&safesearch=true&q=${term}&per_page=${perPage}`
     );
 
     return response.data.hits.map((hit) => hit.webformatURL);

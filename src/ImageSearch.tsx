@@ -10,7 +10,10 @@ import React, { useEffect } from "react";
 import { SearchResults } from "./SearchResults";
 import SearchIcon from "@mui/icons-material/Search";
 
-import { IImageCollectionProvider } from "./ImageProvider";
+export interface IImageCollectionProvider {
+  label: string;
+  search(searchTerm: string, language: string): Promise<string[]>;
+}
 
 export const ImageSearch: React.FunctionComponent<{
   provider: IImageCollectionProvider;

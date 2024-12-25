@@ -20,7 +20,7 @@ export const ImageDetails: React.FunctionComponent<{
         })
         .catch((reason) => {
           console.log(
-            `axios call image-toolbox/image-properties failed: ${reason}`
+            `axios call /local-collections/image-properties failed: ${reason}`
           );
           setImageProps({ size: 0, type: "" });
           setImageDimensions("");
