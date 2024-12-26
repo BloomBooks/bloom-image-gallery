@@ -47,7 +47,12 @@ export class LocalCollectionRoutes extends CommonRoutesConfig {
             .get(req.params.collection)
             ?.get(req.params.lang)
             ?.get(req.params.term) || [];
-        res.status(200).send(files);
+        // path should be something like "http://localhost:5000/image-toolbox/local-collections/collection-image-file/Art%20of%20Reading/Art%20of%20Reading%2fimages"
+        const paths = files.map(
+          (file) =>
+            `${req.protocol}://${req.get("host")}/image-toolbox/local-collections/collection-image-file/${req.params.collection}/${file}`
+        );
+        res.status(200).send(paths);
       });
     this.app
       .route("/local-collections/collection-image-file/:collection/:file")

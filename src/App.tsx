@@ -22,69 +22,44 @@ import FolderIcon from "@mui/icons-material/Folder";
 import AttributionIcon from "@mui/icons-material/Attribution";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
-import {
-  LocalCollectionProvider,
-  useLocalCollections,
-} from "./providers/LocalCollectionProvider";
-import { PixabayImageProvider, usePixbay } from "./providers/PixabayProvider";
-import { IImageProvider } from "./providers/provider";
+import { useLocalCollections } from "./providers/LocalCollectionProvider";
+import { usePixbay } from "./providers/PixabayProvider";
+import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
 
 const mdTheme = createTheme();
 const drawerWidth = 200;
 
 function App() {
-  const [imageCollections] = useState<IImageProvider[]>([]);
-  const [selectedCollectionId, setSelectedCollectionId] = useState<
-    string | undefined
+  const [imageProviders, setImageProviders] = useState<
+    IImageCollectionProvider[]
+  >([]);
+
+  const addToImageProviders = (provider: IImageCollectionProvider) => {
+    // add it if it's not already in the list
+    if (!imageProviders.find((p) => p.id === provider.id)) {
+      setImageProviders([...imageProviders, provider]);
+    }
+  };
+  const [selectedProvider, setSelectedProvider] = useState<
+    IImageCollectionProvider | undefined
   >(undefined);
 
-  const [selectedImageUrl, setSelectedImage] = React.useState("");
-  const [imageProvider, setImageProvider] = useState<
-    LocalCollectionProvider | undefined
-  >(undefined);
+  const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
+    undefined
+  );
 
-  usePixbay(imageCollections);
-  useLocalCollections(imageCollections);
+  usePixbay(addToImageProviders);
+  useLocalCollections(addToImageProviders);
 
   useEffect(() => {
     // select an initial collection
-    if (!selectedCollectionId && imageCollections.length > 0) {
-      setSelectedCollectionId(imageCollections[0].id);
+    if (!selectedProvider && imageProviders.length > 0) {
+      setSelectedProvider(imageProviders[0]);
     }
-  }, [imageCollections]);
+  }, [imageProviders]);
 
-  useEffect(() => {
-    setSelectedImage("");
-  }, [selectedCollectionId]);
-
-  useEffect(() => {
-    if (selectedCollectionId) {
-      const selectedCollection = imageCollections.find(
-        (c) => c.id === selectedCollectionId
-      );
-      if (!selectedCollection) {
-        throw new Error(`Collection ${selectedCollectionId} not found`);
-      }
-
-      if (selectedCollectionId === "pixabay") {
-        setImageProvider(new PixabayImageProvider());
-      } else {
-        setImageProvider(
-          new LocalCollectionProvider(
-            selectedCollection.id,
-            selectedCollection.label
-          )
-        );
-      }
-    } else {
-      setImageProvider(undefined);
-    }
-  }, [selectedCollectionId]);
-
-  function handleSelectCollection(id: string) {
-    return () => {
-      setSelectedCollectionId(id);
-    };
+  function handleSelectCollection(provider: IImageCollectionProvider) {
+    setSelectedProvider(provider);
   }
 
   return (
@@ -140,7 +115,13 @@ function App() {
                       });
                       const file = await fileHandle.getFile();
                       const url = URL.createObjectURL(file);
-                      setSelectedImage(url);
+                      setSelectedImage({
+                        thumbnailUrl: url,
+                        size: file.size,
+                        type: file.type,
+                        width: 0,
+                        height: 0,
+                      });
                     } catch (error) {
                       console.error(error);
                     }
@@ -152,14 +133,14 @@ function App() {
                   <ListItemText primary={"Open File..."} />
                 </ListItemButton>
               </ListItem>
-              {imageCollections?.map((collection) => (
+              {imageProviders?.map((provider) => (
                 <ListItemButton
-                  key={collection.id}
-                  onClick={handleSelectCollection(collection.id)}
-                  selected={collection.id === selectedCollectionId}
+                  key={provider.id}
+                  onClick={() => handleSelectCollection(provider)}
+                  selected={provider === selectedProvider}
                   dense
                 >
-                  <ListItemText primary={collection.label}></ListItemText>
+                  <ListItemText primary={provider.label}></ListItemText>
                 </ListItemButton>
               ))}
             </List>
@@ -185,7 +166,7 @@ function App() {
         >
           {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
           <Toolbar />
-          {selectedCollectionId && imageProvider && (
+          {selectedProvider && (
             <div
               css={css`
                 display: flex;
@@ -196,15 +177,12 @@ function App() {
               `}
             >
               <ImageSearch
-                provider={imageProvider}
+                provider={selectedProvider}
                 lang={"en"}
                 handleSelection={setSelectedImage}
               />
               <Divider orientation="vertical" flexItem />
-              <ImageDetails
-                collectionId={selectedCollectionId}
-                url={selectedImageUrl}
-              />
+              <ImageDetails image={selectedImage} />
             </div>
           )}
         </Box>

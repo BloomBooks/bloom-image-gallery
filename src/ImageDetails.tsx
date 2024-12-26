@@ -1,47 +1,10 @@
 import { css } from "@emotion/react";
-import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
+import { IImage } from "./providers/imageProvider";
 
 export const ImageDetails: React.FunctionComponent<{
-  collectionId?: string;
-  url?: string;
+  image?: IImage;
 }> = (props) => {
-  const [imageProps, setImageProps] = useState({ size: 0, type: "" });
-  const [imageDimensions, setImageDimensions] = useState("");
-
-  let uriSearch: string = "";
-
-  useEffect(() => {
-    if (props.collectionId && props.url) {
-      axios
-        .get(uriSearch)
-        .then((response) => {
-          setImageProps(response.data);
-        })
-        .catch((reason) => {
-          console.log(
-            `axios call /local-collections/image-properties failed: ${reason}`
-          );
-          setImageProps({ size: 0, type: "" });
-          setImageDimensions("");
-        });
-    } else {
-      setImageProps({ size: 0, type: "" });
-      setImageDimensions("");
-    }
-  }, [props.collectionId, props.url]);
-
-  function imageLoaded(event: React.SyntheticEvent<HTMLImageElement, Event>) {
-    const image = document.getElementById("details-image") as HTMLImageElement;
-    if (image) {
-      setImageDimensions(
-        `${image.naturalWidth} x ${image.naturalHeight} pixels`
-      );
-    } else {
-      setImageDimensions("");
-    }
-  }
-
   function getUserFriendlySize(size: number): string {
     const ksize = size / 1024.0;
     if (ksize < 10) return size.toString();
@@ -55,34 +18,39 @@ export const ImageDetails: React.FunctionComponent<{
     );
   }
 
+  useEffect(() => {
+    console.log(`ImageDetails ${JSON.stringify(props.image, null, 2)}`);
+  }, [props.image]);
   return (
-    <div
-      css={css`
-        display: flex;
-        flex-direction: column;
-        width: 300px;
-        margin-left: 10px;
-      `}
-    >
-      <img
-        id={"details-image"}
-        onLoad={imageLoaded}
-        src={props.url}
-        css={css`
-          margin-bottom: 15px;
-        `}
-      />
+    props.image && (
       <div
         css={css`
-          text-align: center;
+          display: flex;
+          flex-direction: column;
+          width: 300px;
+          margin-left: 10px;
         `}
       >
-        {imageDimensions}
-        <br></br>
-        {imageProps.size > 0 ? getUserFriendlySize(imageProps.size) : ""}
-        <br></br>
-        {imageProps.type}
+        <img
+          id={"details-image"}
+          //onLoad={imageLoaded}
+          src={props.image.reasonableSizeUrl}
+          css={css`
+            margin-bottom: 15px;
+          `}
+        />
+        <div
+          css={css`
+            text-align: center;
+          `}
+        >
+          {props.image.width}x{props.image.height}
+          <br></br>
+          {props.image.size > 0 ? getUserFriendlySize(props.image.size) : ""}
+          <br></br>
+          {props.image.type}
+        </div>
       </div>
-    </div>
+    )
   );
 };

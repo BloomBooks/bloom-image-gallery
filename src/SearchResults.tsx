@@ -6,18 +6,64 @@ import {
   Skeleton,
 } from "@mui/material";
 import React, { useState } from "react";
+import { IImage } from "./providers/imageProvider";
+import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
+
+const ImageListItemWithLazyLoad: React.FC<{
+  image: IImage;
+  onSelect: (image: IImage) => void;
+}> = ({ image, onSelect }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { elementRef, isVisible } = useIntersectionObserver<HTMLLIElement>({
+    threshold: 0.1,
+    rootMargin: "50px",
+  });
+
+  return (
+    <ImageListItem
+      ref={elementRef}
+      onClick={() => onSelect(image)}
+      sx={{ position: "relative" }}
+      component="li"
+    >
+      {(!isLoaded || !isVisible) && (
+        <Skeleton
+          variant="rectangular"
+          width={164}
+          height={164}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            zIndex: 1,
+          }}
+        />
+      )}
+      {isVisible && (
+        <img
+          src={image.thumbnailUrl}
+          width={164}
+          height={164}
+          alt={image.thumbnailUrl.substring(
+            image.thumbnailUrl.lastIndexOf("%2f") + 3
+          )}
+          onLoad={() => setIsLoaded(true)}
+          css={css`
+            object-fit: scale-down;
+            position: relative;
+            z-index: ${isLoaded ? 2 : 0};
+          `}
+        />
+      )}
+    </ImageListItem>
+  );
+};
 
 export const SearchResults: React.FunctionComponent<{
-  images: string[];
-  handleSelection: (item: string) => void;
+  images: IImage[];
+  handleSelection: (item: IImage | undefined) => void;
   isLoading: boolean;
 }> = (props) => {
-  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
-
-  const handleImageLoad = (item: string) => {
-    setLoadedImages((prev) => new Set([...prev, item]));
-  };
-
   return (
     <div
       css={css`
@@ -40,39 +86,12 @@ export const SearchResults: React.FunctionComponent<{
         </div>
       ) : (
         <ImageList sx={{ height: 550 }} cols={3} rowHeight={164}>
-          {props.images.map((url) => (
-            <ImageListItem
-              key={url}
-              onClick={() => props.handleSelection(url)}
-              sx={{ position: "relative" }}
-            >
-              {!loadedImages.has(url) && (
-                <Skeleton
-                  variant="rectangular"
-                  width={164}
-                  height={164}
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    zIndex: 1,
-                  }}
-                />
-              )}
-              <img
-                src={url}
-                width={164}
-                height={164}
-                alt={url.substring(url.lastIndexOf("%2f") + 3)}
-                loading="lazy"
-                onLoad={() => handleImageLoad(url)}
-                css={css`
-                  object-fit: scale-down;
-                  position: relative;
-                  z-index: ${loadedImages.has(url) ? 2 : 0};
-                `}
-              />
-            </ImageListItem>
+          {props.images.map((image) => (
+            <ImageListItemWithLazyLoad
+              key={image.thumbnailUrl}
+              image={image}
+              onSelect={props.handleSelection}
+            />
           ))}
         </ImageList>
       )}

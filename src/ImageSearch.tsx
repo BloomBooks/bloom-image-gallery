@@ -9,20 +9,20 @@ import {
 import React, { useEffect } from "react";
 import { SearchResults } from "./SearchResults";
 import SearchIcon from "@mui/icons-material/Search";
-
-export interface IImageCollectionProvider {
-  label: string;
-  search(searchTerm: string, language: string): Promise<string[]>;
-}
+import {
+  IImageCollectionProvider,
+  IImage,
+  ISearchResult,
+} from "./providers/imageProvider";
 
 export const ImageSearch: React.FunctionComponent<{
   provider: IImageCollectionProvider;
   lang: string;
-  handleSelection: (item: string) => void;
+  handleSelection: (item: IImage | undefined) => void;
 }> = (props) => {
   const [searchTerm, setSearchTerm] = React.useState("tree");
   const [searchLanguage, setSearchLanguage] = React.useState(props.lang);
-  const [imagesFound, setImagesFound] = React.useState([] as string[]);
+  const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,20 +45,16 @@ export const ImageSearch: React.FunctionComponent<{
 
   function searchForImages(): void {
     setIsLoading(true);
-    props.provider
-      .search(searchTerm, searchLanguage)
-      .then((images) => {
-        props.handleSelection("");
-        if (images) {
-          setImagesFound(images);
-        } else {
-          setImagesFound([]);
-        }
+    const promise = props.provider.search(searchTerm, searchLanguage);
+    promise
+      .then((result: ISearchResult) => {
+        props.handleSelection(undefined);
+        setSearchResult(result);
         setIsLoading(false);
       })
       .catch((reason) => {
         console.log(`Image search failed: ${reason}`);
-        setImagesFound([]);
+        setSearchResult(undefined);
         setIsLoading(false);
       });
   }
@@ -75,11 +71,7 @@ export const ImageSearch: React.FunctionComponent<{
   }
 
   useEffect(() => {
-    setImagesFound([]);
-    // Only clear search if collection or language changes
-    if (searchTerm !== "tree") {
-      setSearchTerm("");
-    }
+    setSearchResult(undefined);
   }, [props.provider, props.lang]);
 
   return (
@@ -142,7 +134,7 @@ export const ImageSearch: React.FunctionComponent<{
         </Select>{" "}
       </div>
       <SearchResults
-        images={imagesFound}
+        images={searchResult?.images || []}
         handleSelection={props.handleSelection}
         isLoading={isLoading}
       />
