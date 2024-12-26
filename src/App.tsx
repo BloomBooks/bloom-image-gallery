@@ -23,7 +23,7 @@ import AttributionIcon from "@mui/icons-material/Attribution";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
 import { useLocalCollections } from "./providers/LocalCollectionProvider";
-import { usePixbay } from "./providers/PixabayProvider";
+import { Pixabay, usePixbay } from "./providers/PixabayProvider";
 import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
 
 const mdTheme = createTheme();
@@ -48,7 +48,7 @@ function App() {
     undefined
   );
 
-  usePixbay(addToImageProviders);
+  addToImageProviders(new Pixabay());
   useLocalCollections(addToImageProviders);
 
   useEffect(() => {

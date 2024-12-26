@@ -10,6 +10,7 @@ export interface ISearchResult {
   error?: string;
 }
 
+// enhance: an Image could be an array of different available sizes (e.g. pixabay has several), and the user could choose
 export interface IImage {
   thumbnailUrl: string;
   reasonableSizeUrl?: string;

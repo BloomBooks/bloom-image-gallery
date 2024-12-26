@@ -1,19 +1,64 @@
 import axios from "axios";
-import { useEffect } from "react";
 import {
   IImage,
   IImageCollectionProvider,
   ISearchResult,
 } from "./imageProvider";
 
-export function usePixbay(add: (provider: IImageCollectionProvider) => void) {
-  useEffect(() => {
-    add({
-      label: "Pixabay",
-      id: "pixabay",
-      search: search,
-    });
-  }, []);
+export class Pixabay implements IImageCollectionProvider {
+  private apiKey: string | undefined;
+  public label = "Pixabay";
+  public id = "pixabay";
+
+  public async search(
+    searchTerm: string,
+    language: string
+  ): Promise<ISearchResult> {
+    if (!this.apiKey) {
+      await this.fetchApiKey();
+    }
+    if (!this.apiKey) {
+      return {
+        images: [],
+        error: "Could not get a Pixabay API key",
+      };
+    }
+
+    const perPage = searchTerm.toLowerCase() === "tree" ? 4 : 20;
+    const term = encodeURIComponent(searchTerm);
+    const imageType = "illustration";
+    const response = await axios.get<PixabayResponse>(
+      `https://pixabay.com/api/?key=${this.apiKey}&safesearch=true&q=${term}&per_page=${perPage}&image_type=${imageType}`
+    );
+
+    return {
+      images: response.data.hits.map(
+        (hit: PixabayImage) =>
+          ({
+            thumbnailUrl: hit.previewURL,
+            // review: we have at least 3 premade sizes and can get a custom size too
+            reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
+            size: 0,
+            type: "?",
+            width: hit.webformatWidth,
+            height: hit.webformatHeight,
+            raw: hit,
+          }) as IImage
+      ),
+    };
+  }
+
+  private async fetchApiKey() {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/image-toolbox/api-key/pixabay"
+      );
+      this.apiKey = response.data.key;
+    } catch (error) {
+      console.error("Failed to fetch Pixabay API key:", error);
+      throw error;
+    }
+  }
 }
 
 interface PixabayImage {
@@ -39,55 +84,4 @@ interface PixabayImage {
 
 interface PixabayResponse {
   hits: PixabayImage[];
-}
-
-let apiKey: string | undefined;
-
-async function fetchApiKey() {
-  try {
-    const response = await axios.get(
-      "http://localhost:5000/image-toolbox/api-key/pixabay"
-    );
-    apiKey = response.data.key;
-  } catch (error) {
-    console.error("Failed to fetch Pixabay API key:", error);
-    throw error;
-  }
-}
-
-async function search(
-  searchTerm: string,
-  language: string
-): Promise<ISearchResult> {
-  if (!apiKey) {
-    await fetchApiKey();
-  }
-  if (!apiKey) {
-    return {
-      images: [],
-      error: "Could not get a Pixabay API key",
-    };
-  }
-
-  const perPage = searchTerm.toLowerCase() === "tree" ? 4 : 20;
-  const term = encodeURIComponent(searchTerm);
-  const response = await axios.get<PixabayResponse>(
-    `https://pixabay.com/api/?key=${apiKey}&safesearch=true&q=${term}&per_page=${perPage}`
-  );
-
-  return {
-    images: response.data.hits.map(
-      (hit: PixabayImage) =>
-        ({
-          thumbnailUrl: hit.previewURL,
-          // review: we have at least 3 premade sizes and can get a custom size too
-          reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
-          size: 0,
-          type: "?",
-          width: hit.webformatWidth,
-          height: hit.webformatHeight,
-          raw: hit,
-        }) as IImage
-    ),
-  };
 }

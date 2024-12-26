@@ -47,8 +47,6 @@ export const ImageDetails: React.FunctionComponent<{
           {props.image.width}x{props.image.height}
           <br></br>
           {props.image.size > 0 ? getUserFriendlySize(props.image.size) : ""}
-          <br></br>
-          {props.image.type}
         </div>
       </div>
     )
