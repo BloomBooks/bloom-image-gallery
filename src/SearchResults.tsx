@@ -8,6 +8,7 @@ import {
 import React, { useState } from "react";
 import { IImage } from "./providers/imageProvider";
 import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const ImageListItemWithLazyLoad: React.FC<{
   image: IImage;
@@ -44,9 +45,6 @@ const ImageListItemWithLazyLoad: React.FC<{
           src={image.thumbnailUrl}
           width={164}
           height={164}
-          alt={image.thumbnailUrl.substring(
-            image.thumbnailUrl.lastIndexOf("%2f") + 3
-          )}
           onLoad={() => setIsLoaded(true)}
           css={css`
             object-fit: scale-down;
@@ -65,36 +63,38 @@ export const SearchResults: React.FunctionComponent<{
   isLoading: boolean;
 }> = (props) => {
   return (
-    <div
-      css={css`
-        flex-grow: 1;
-        position: relative;
-        height: 550px;
-        width: 550px;
-      `}
-    >
-      {props.isLoading ? (
-        <div
-          css={css`
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-          `}
-        >
-          <CircularProgress />
-        </div>
-      ) : (
-        <ImageList sx={{ height: 550 }} cols={3} rowHeight={164}>
-          {props.images.map((image) => (
-            <ImageListItemWithLazyLoad
-              key={image.thumbnailUrl}
-              image={image}
-              onSelect={props.handleSelection}
-            />
-          ))}
-        </ImageList>
-      )}
-    </div>
+    <ErrorBoundary>
+      <div
+        css={css`
+          flex-grow: 1;
+          position: relative;
+          height: 550px;
+          width: 550px;
+        `}
+      >
+        {props.isLoading ? (
+          <div
+            css={css`
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+            `}
+          >
+            <CircularProgress />
+          </div>
+        ) : (
+          <ImageList sx={{ height: 550 }} cols={3} rowHeight={164}>
+            {props.images.map((image) => (
+              <ImageListItemWithLazyLoad
+                key={image.thumbnailUrl}
+                image={image}
+                onSelect={props.handleSelection}
+              />
+            ))}
+          </ImageList>
+        )}
+      </div>
+    </ErrorBoundary>
   );
 };

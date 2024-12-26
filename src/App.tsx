@@ -23,7 +23,9 @@ import AttributionIcon from "@mui/icons-material/Attribution";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
 import { useLocalCollections } from "./providers/LocalCollectionProvider";
-import { Pixabay, usePixbay } from "./providers/PixabayProvider";
+import { Pixabay } from "./providers/PixabayProvider";
+import { OpenVerse } from "./providers/OpenVerseProvider";
+import { Europeana } from "./providers/EuropeanaProvider";
 import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
 
 const mdTheme = createTheme();
@@ -47,8 +49,10 @@ function App() {
   const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
     undefined
   );
-
+  addToImageProviders(new Europeana());
+  addToImageProviders(new OpenVerse());
   addToImageProviders(new Pixabay());
+
   useLocalCollections(addToImageProviders);
 
   useEffect(() => {

@@ -18,5 +18,9 @@ export interface IImage {
   type: string;
   width: number;
   height: number;
+  license?: string;
+  licenseUrl?: string;
+  creator?: string;
+  creatorUrl?: string;
   raw?: object;
 }

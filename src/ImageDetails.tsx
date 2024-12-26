@@ -47,6 +47,18 @@ export const ImageDetails: React.FunctionComponent<{
           {props.image.width}x{props.image.height}
           <br></br>
           {props.image.size > 0 ? getUserFriendlySize(props.image.size) : ""}
+          {props.image.creator && (
+            <>
+              <br />
+              Creator: {props.image.creator}
+            </>
+          )}
+          {props.image.license && (
+            <>
+              <br />
+              License: {props.image.license}
+            </>
+          )}
         </div>
       </div>
     )
