@@ -77,7 +77,7 @@ export const ImageSearch: React.FunctionComponent<{
   return (
     <div
       css={css`
-        flex-grow: 1;
+        flex-grow: 0;
       `}
     >
       <div

@@ -66,10 +66,11 @@ export const SearchResults: React.FunctionComponent<{
     <ErrorBoundary>
       <div
         css={css`
-          flex-grow: 1;
+          flex-grow: 0;
           position: relative;
           height: 550px;
           width: 550px;
+          overflow-y: scroll;
         `}
       >
         {props.isLoading ? (
@@ -84,7 +85,7 @@ export const SearchResults: React.FunctionComponent<{
             <CircularProgress />
           </div>
         ) : (
-          <ImageList sx={{ height: 550 }} cols={3} rowHeight={164}>
+          <ImageList cols={3} rowHeight={164}>
             {props.images.map((image) => (
               <ImageListItemWithLazyLoad
                 key={image.thumbnailUrl}

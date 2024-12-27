@@ -27,8 +27,10 @@ export const ImageDetails: React.FunctionComponent<{
         css={css`
           display: flex;
           flex-direction: column;
+          flex-grow: 1;
           width: 300px;
           margin-left: 10px;
+          //max-height: 100%;
         `}
       >
         <img
@@ -37,6 +39,8 @@ export const ImageDetails: React.FunctionComponent<{
           src={props.image.reasonableSizeUrl}
           css={css`
             margin-bottom: 15px;
+            max-height: calc(100vh - 200px);
+            object-fit: contain;
           `}
         />
         <div
