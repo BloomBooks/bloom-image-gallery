@@ -26,6 +26,7 @@ import { useLocalCollections } from "./providers/LocalCollectionProvider";
 import { Pixabay } from "./providers/PixabayProvider";
 import { OpenVerse } from "./providers/OpenVerseProvider";
 import { Europeana } from "./providers/EuropeanaProvider";
+import { WikipediaProvider } from "./providers/WikipediaProvider";
 import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
 
 const mdTheme = createTheme();
@@ -49,6 +50,7 @@ function App() {
   useEffect(() => {
     const initProviders = async () => {
       addToImageProviders(new OpenVerse());
+      addToImageProviders(new WikipediaProvider());
       addToImageProviders(await new Pixabay().checkReadiness());
       addToImageProviders(await new Europeana().checkReadiness());
     };
