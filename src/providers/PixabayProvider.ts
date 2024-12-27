@@ -11,14 +11,17 @@ export class Pixabay implements IImageCollectionProvider {
   public label = "Pixabay";
   public id = "pixabay";
   public logo = logo;
+  public needsApiUrl?: string;
+
+  public async checkReadiness() {
+    await this.fetchApiKey();
+    return this;
+  }
 
   public async search(
     searchTerm: string,
     language: string
   ): Promise<ISearchResult> {
-    if (!this.apiKey) {
-      await this.fetchApiKey();
-    }
     if (!this.apiKey) {
       return {
         images: [],
@@ -59,6 +62,10 @@ export class Pixabay implements IImageCollectionProvider {
         "http://localhost:5000/image-toolbox/api-key/pixabay"
       );
       this.apiKey = response.data.key;
+      // if we didn't get one
+      if (!this.apiKey) {
+        this.needsApiUrl = "https://pixabay.com/api/docs/";
+      }
     } catch (error) {
       console.error("Failed to fetch Pixabay API key:", error);
       throw error;

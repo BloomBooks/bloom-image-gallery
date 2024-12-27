@@ -3,7 +3,9 @@ export interface IImageCollectionProvider {
   id: string;
   logo?: string;
   languages?: string[];
+  needsApiUrl?: string;
   search(searchTerm: string, language: string): Promise<ISearchResult>;
+  checkReadiness?(): Promise<IImageCollectionProvider>;
 }
 
 export interface ISearchResult {

@@ -11,14 +11,17 @@ export class Europeana implements IImageCollectionProvider {
   public label = "Europeana";
   public id = "europeana";
   public logo = logo;
+  public needsApiUrl?: string;
+
+  public async checkReadiness() {
+    await this.fetchApiKey();
+    return this;
+  }
 
   public async search(
     searchTerm: string,
     language: string
   ): Promise<ISearchResult> {
-    if (!this.apiKey) {
-      await this.fetchApiKey();
-    }
     if (!this.apiKey) {
       return {
         images: [],
@@ -66,14 +69,20 @@ export class Europeana implements IImageCollectionProvider {
   }
 
   private async fetchApiKey() {
-    try {
-      const response = await axios.get(
-        "http://localhost:5000/image-toolbox/api-key/europeana"
-      );
-      this.apiKey = response.data.key;
-    } catch (error) {
-      console.error("Failed to fetch Europeana API key:", error);
-      throw error;
+    if (!this.apiKey) {
+      try {
+        const response = await axios.get(
+          "http://localhost:5000/image-toolbox/api-key/europeana"
+        );
+        this.apiKey = response.data.key;
+        // if we didn't get one
+        if (!this.apiKey) {
+          this.needsApiUrl = "https://pro.europeana.eu/page/get-api";
+        }
+      } catch (error) {
+        console.error("Failed to fetch Europeana API key:", error);
+        throw error;
+      }
     }
   }
 

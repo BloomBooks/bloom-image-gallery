@@ -37,11 +37,27 @@ function App() {
   >([]);
 
   const addToImageProviders = (provider: IImageCollectionProvider) => {
-    // add it if it's not already in the list
-    if (!imageProviders.find((p) => p.id === provider.id)) {
-      setImageProviders([...imageProviders, provider]);
-    }
+    setImageProviders((prev) => {
+      if (!prev.find((p) => p.id === provider.id)) {
+        return [...prev, provider];
+      }
+      return prev;
+    });
   };
+
+  // Initialize built-in providers
+  useEffect(() => {
+    const initProviders = async () => {
+      addToImageProviders(new OpenVerse());
+      addToImageProviders(await new Pixabay().checkReadiness());
+      addToImageProviders(await new Europeana().checkReadiness());
+    };
+    initProviders();
+  }, []); // Only run once on mount
+
+  // Handle local collections separately
+  useLocalCollections(addToImageProviders);
+
   const [selectedProvider, setSelectedProvider] = useState<
     IImageCollectionProvider | undefined
   >(undefined);
@@ -49,11 +65,6 @@ function App() {
   const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
     undefined
   );
-  addToImageProviders(new Europeana());
-  addToImageProviders(new OpenVerse());
-  addToImageProviders(new Pixabay());
-
-  useLocalCollections(addToImageProviders);
 
   useEffect(() => {
     // select an initial collection
@@ -141,6 +152,21 @@ function App() {
                   onClick={() => handleSelectCollection(provider)}
                   selected={provider === selectedProvider}
                   dense
+                  sx={{
+                    position: "relative",
+                    "&::after": provider.needsApiUrl
+                      ? {
+                          content: '""',
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: "rgba(255, 255, 255, 0.5)",
+                          pointerEvents: "none",
+                        }
+                      : {},
+                  }}
                 >
                   {provider.logo && (
                     <ListItemIcon>
@@ -164,7 +190,32 @@ function App() {
         >
           {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
           <Toolbar />
-          {selectedProvider && (
+          {selectedProvider?.needsApiUrl && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                margin: "20px",
+              }}
+            >
+              <Typography variant="caption">
+                {`(This is a message for developers. For users, we'll either need a UI for pasting in or we'll provide the keys via our server.)`}
+                <br />
+                <br />
+                {`Before you can use ${selectedProvider.label}, you will need to obtain a free API key from them for at `}
+                {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                <a href={selectedProvider.needsApiUrl} target="_blank">
+                  {selectedProvider.needsApiUrl}
+                </a>
+                <br />
+                <br />
+                {`Once you have the key, put it in an environment variable named ${selectedProvider.label}. Remember to restart the app or dev environment after setting the key.`}
+              </Typography>
+            </Box>
+          )}
+          {selectedProvider && !selectedProvider.needsApiUrl && (
             <div
               css={css`
                 display: flex;
