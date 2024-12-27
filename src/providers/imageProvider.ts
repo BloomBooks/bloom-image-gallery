@@ -15,8 +15,11 @@ export interface ISearchResult {
 export interface IImage {
   thumbnailUrl: string;
   reasonableSizeUrl?: string;
+  webSiteUrl?: string;
   size: number;
   type: string;
+  width?: number;
+  height?: number;
   license?: string;
   licenseUrl?: string;
   creator?: string;

@@ -81,7 +81,7 @@ function App() {
         >
           <Toolbar>
             <Typography variant="h6" noWrap component="div">
-              Image Toolbox
+              Find Image
             </Typography>
           </Toolbar>
         </AppBar>

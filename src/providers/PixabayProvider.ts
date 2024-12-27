@@ -40,10 +40,13 @@ export class Pixabay implements IImageCollectionProvider {
             thumbnailUrl: hit.previewURL,
             // review: we have at least 3 premade sizes and can get a custom size too
             reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
+            webSiteUrl: hit.pageUrl,
             size: 0,
             type: "?",
-            // width: hit.webformatWidth,
-            // height: hit.webformatHeight,
+            width: hit.webformatWidth,
+            height: hit.webformatHeight,
+            license: "Pixabay License",
+            licenseUrl: "https://pixabay.com/service/license/",
             raw: hit,
           }) as IImage
       ),
@@ -76,6 +79,8 @@ interface PixabayImage {
   webformatHeight: number;
 
   largeImageURL: string; // Scaled image with a maximum width/height of 1280px.
+
+  pageUrl: string; // URL to the page on Pixabay, where the image can be found.
 
   // only available if your account has been approved for full API access
   // fullHDURL	Full HD scaled image with a maximum width/height of 1920px.

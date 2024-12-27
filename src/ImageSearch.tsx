@@ -85,6 +85,7 @@ export const ImageSearch: React.FunctionComponent<{
           display: flex;
           flex-direction: row;
           align-items: center;
+          margin-bottom: 10px;
         `}
       >
         {props.provider.logo && (

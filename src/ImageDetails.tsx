@@ -23,7 +23,6 @@ export const ImageDetails: React.FunctionComponent<{
     console.log(`ImageDetails ${JSON.stringify(props.image, null, 2)}`);
   }, [props.image]);
 
-  // see if the image server will tell us the size (most won't, pixabay does)
   useEffect(() => {
     if (props.image?.reasonableSizeUrl) {
       fetch(props.image.reasonableSizeUrl, { method: "HEAD" })
@@ -52,7 +51,6 @@ export const ImageDetails: React.FunctionComponent<{
           flex-grow: 1;
           width: 300px;
           margin-left: 10px;
-          //max-height: 100%;
         `}
       >
         <img
@@ -60,37 +58,58 @@ export const ImageDetails: React.FunctionComponent<{
           onLoad={handleImageLoad}
           src={props.image.reasonableSizeUrl}
           css={css`
-            margin-bottom: 15px;
+            display: block;
             max-height: calc(100vh - 200px);
             object-fit: contain;
+            width: 100%;
+            background-image: linear-gradient(45deg, #eee 25%, transparent 25%),
+              linear-gradient(-45deg, #eee 25%, transparent 25%),
+              linear-gradient(45deg, transparent 75%, #eee 75%),
+              linear-gradient(-45deg, transparent 75%, #eee 75%);
+            background-size: 20px 20px;
+            background-position:
+              0 0,
+              0 10px,
+              10px -10px,
+              -10px 0px;
           `}
         />
         <div
           css={css`
             text-align: center;
+            color: #3a3a3a;
+            margin-top: 10px;
           `}
         >
           {dimensions.width > 0 && dimensions.height > 0 && (
             <>
-              Dimensions {dimensions.width}x{dimensions.height}
+              {dimensions.width} x {dimensions.height}
             </>
           )}
           {fileSize > 0 && (
             <>
               <br />
-              Size: {getUserFriendlySize(fileSize)}
+              {getUserFriendlySize(fileSize)}
             </>
           )}
           {props.image.creator && (
             <>
               <br />
-              Creator: {props.image.creator}
+              {props.image.creator}
             </>
           )}
           {props.image.license && (
             <>
               <br />
-              License: {props.image.license}
+              {props.image.license}
+            </>
+          )}
+          {props.image.webSiteUrl && (
+            <>
+              <br />
+              <a href={props.image.webSiteUrl} target="_blank" rel="noreferrer">
+                Source
+              </a>
             </>
           )}
         </div>

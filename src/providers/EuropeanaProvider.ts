@@ -47,6 +47,7 @@ export class Europeana implements IImageCollectionProvider {
               ({
                 thumbnailUrl: item.edmPreview,
                 reasonableSizeUrl: item.edmIsShownBy,
+                webSiteUrl: item.edmIsShownAt,
                 size: 0,
                 type: "image/*",
                 creator: item.dcCreator ? item.dcCreator[0] : undefined,
@@ -93,6 +94,7 @@ export class Europeana implements IImageCollectionProvider {
 }
 
 interface EuropeanaItem {
+  edmIsShownAt: string | undefined;
   id: string;
   title: string[];
   dcCreator?: string[];
