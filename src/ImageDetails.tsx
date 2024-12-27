@@ -5,23 +5,34 @@ import { IImage } from "./providers/imageProvider";
 export const ImageDetails: React.FunctionComponent<{
   image?: IImage;
 }> = (props) => {
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [dimensions, setDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+  const [fileSize, setFileSize] = useState<number>(0);
 
   function getUserFriendlySize(size: number): string {
     const ksize = size / 1024.0;
-    if (ksize < 10) return size.toString();
-    if (ksize < 1024)
-      return (
-        Number(Math.round(parseFloat(`${ksize}e2`)) + "e-2").toString() + "K"
-      );
+    if (ksize < 10) return Math.round(size).toString();
+    if (ksize < 1024) return Math.round(ksize) + "K";
     const msize = ksize / 1024.0;
-    return (
-      Number(Math.round(parseFloat(`${msize}e2`)) + "e-2").toString() + "M"
-    );
+    return Math.round(msize) + "M";
   }
 
   useEffect(() => {
     console.log(`ImageDetails ${JSON.stringify(props.image, null, 2)}`);
+  }, [props.image]);
+
+  // see if the image server will tell us the size (most won't, pixabay does)
+  useEffect(() => {
+    if (props.image?.reasonableSizeUrl) {
+      fetch(props.image.reasonableSizeUrl, { method: "HEAD" })
+        .then((response) => {
+          const size = response.headers.get("content-length");
+          setFileSize(size ? parseInt(size, 10) : 0);
+        })
+        .catch((err) => console.error("Error fetching image size:", err));
+    }
   }, [props.image]);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
@@ -61,11 +72,13 @@ export const ImageDetails: React.FunctionComponent<{
         >
           {dimensions.width > 0 && dimensions.height > 0 && (
             <>
-              {dimensions.width}x{dimensions.height}
-              <br></br>
-              {props.image.size > 0
-                ? getUserFriendlySize(props.image.size)
-                : ""}
+              Dimensions {dimensions.width}x{dimensions.height}
+            </>
+          )}
+          {fileSize > 0 && (
+            <>
+              <br />
+              Size: {getUserFriendlySize(fileSize)}
             </>
           )}
           {props.image.creator && (
