@@ -48,9 +48,15 @@ export const ImageDetails: React.FunctionComponent<{
             text-align: center;
           `}
         >
-          {props.image.width}x{props.image.height}
-          <br></br>
-          {props.image.size > 0 ? getUserFriendlySize(props.image.size) : ""}
+          {props.image.width > 0 && props.image.height > 0 && (
+            <>
+              {props.image.width}x{props.image.height}
+              <br></br>
+              {props.image.size > 0
+                ? getUserFriendlySize(props.image.size)
+                : ""}
+            </>
+          )}
           {props.image.creator && (
             <>
               <br />

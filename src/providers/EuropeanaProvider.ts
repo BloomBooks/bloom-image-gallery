@@ -27,12 +27,16 @@ export class Europeana implements IImageCollectionProvider {
     }
 
     try {
+      // enhance: "Open" limits to CC0, CC BY, CC BY-SA. It includes "PDM" which Bloom wouldn't understand (but should).
+      // If we used "restricted" then we get CC BY-ND and all the NC ones. It also includes sever
+      // Bloom doesn't understand, InC-EDU, NoC-NC, NoC-OKLR.
+      const reusability = "open";
       const response = await axios.get<EuropeanaResponse>(
         `https://api.europeana.eu/api/v2/search.json?wskey=${
           this.apiKey
         }&query=${encodeURIComponent(
           searchTerm
-        )}&media=true&qf=TYPE:IMAGE&profile=rich&rows=20`
+        )}&media=true&qf=TYPE:IMAGE&profile=minimal&reusability=${reusability}&rows=20`
       );
 
       return {
@@ -41,12 +45,14 @@ export class Europeana implements IImageCollectionProvider {
           .map(
             (item) =>
               ({
-                thumbnailUrl: item.edmIsShownBy,
+                thumbnailUrl: item.edmPreview,
                 reasonableSizeUrl: item.edmIsShownBy,
                 size: 0,
                 type: "image/*",
                 width: 0,
                 height: 0,
+                creator: item.dcCreator ? item.dcCreator[0] : undefined,
+                license: this.convertLicense(item.rights?.[0]),
                 raw: item,
               }) as IImage
           ),
@@ -71,6 +77,21 @@ export class Europeana implements IImageCollectionProvider {
       throw error;
     }
   }
+
+  private convertLicense(licenseUrl?: string): string | undefined {
+    if (!licenseUrl) return undefined;
+
+    if (licenseUrl.includes("publicdomain")) {
+      return "Public Domain";
+    }
+
+    const ccMatch = licenseUrl.match(
+      /creativecommons\.org\/licenses\/((?:by|sa|nc|nd)(?:-(?:sa|nc|nd))*)/i
+    );
+    if (!ccMatch) return licenseUrl;
+
+    return "CC-" + ccMatch[1].toUpperCase();
+  }
 }
 
 interface EuropeanaItem {
@@ -78,6 +99,7 @@ interface EuropeanaItem {
   title: string[];
   dcCreator?: string[];
   edmIsShownBy: string;
+  edmPreview: string;
   dcDescription?: string[];
   dataProvider: string[];
   rights: string[];

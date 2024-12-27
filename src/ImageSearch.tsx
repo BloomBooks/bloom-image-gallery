@@ -105,7 +105,7 @@ export const ImageSearch: React.FunctionComponent<{
           value={searchTerm}
           onKeyDown={handleKeyDown}
           onChange={handleChange}
-          sx={{ width: "300px" }}
+          sx={{ width: "150px" }}
         ></TextField>
         {/* MUI IconButton by itself can't be contained. So we use a normal
         Button with no text. */}
