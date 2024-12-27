@@ -49,8 +49,6 @@ export class Europeana implements IImageCollectionProvider {
                 reasonableSizeUrl: item.edmIsShownBy,
                 size: 0,
                 type: "image/*",
-                width: 0,
-                height: 0,
                 creator: item.dcCreator ? item.dcCreator[0] : undefined,
                 license: this.convertLicense(item.rights?.[0]),
                 raw: item,

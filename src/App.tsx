@@ -123,8 +123,6 @@ function App() {
                         thumbnailUrl: url,
                         size: file.size,
                         type: file.type,
-                        width: 0,
-                        height: 0,
                       });
                     } catch (error) {
                       console.error(error);
@@ -172,7 +170,7 @@ function App() {
                 display: flex;
                 flex-direction: row;
                 width: 100%;
-                height: 500px;
+                height: calc(100vh - 84px);
                 padding: 20px;
               `}
             >

@@ -17,8 +17,6 @@ export interface IImage {
   reasonableSizeUrl?: string;
   size: number;
   type: string;
-  width: number;
-  height: number;
   license?: string;
   licenseUrl?: string;
   creator?: string;

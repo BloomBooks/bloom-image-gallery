@@ -42,8 +42,8 @@ export class Pixabay implements IImageCollectionProvider {
             reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
             size: 0,
             type: "?",
-            width: hit.webformatWidth,
-            height: hit.webformatHeight,
+            // width: hit.webformatWidth,
+            // height: hit.webformatHeight,
             raw: hit,
           }) as IImage
       ),

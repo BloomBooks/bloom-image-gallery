@@ -52,8 +52,6 @@ async function search(
           reasonableSizeUrl: url,
           size: 0,
           type: "?",
-          width: 0,
-          height: 0,
         }) as IImage
     ),
   };

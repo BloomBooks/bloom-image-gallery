@@ -1,10 +1,12 @@
 import { css } from "@emotion/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { IImage } from "./providers/imageProvider";
 
 export const ImageDetails: React.FunctionComponent<{
   image?: IImage;
 }> = (props) => {
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+
   function getUserFriendlySize(size: number): string {
     const ksize = size / 1024.0;
     if (ksize < 10) return size.toString();
@@ -21,6 +23,15 @@ export const ImageDetails: React.FunctionComponent<{
   useEffect(() => {
     console.log(`ImageDetails ${JSON.stringify(props.image, null, 2)}`);
   }, [props.image]);
+
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    setDimensions({
+      width: img.naturalWidth,
+      height: img.naturalHeight,
+    });
+  };
+
   return (
     props.image && (
       <div
@@ -35,7 +46,7 @@ export const ImageDetails: React.FunctionComponent<{
       >
         <img
           id={"details-image"}
-          //onLoad={imageLoaded}
+          onLoad={handleImageLoad}
           src={props.image.reasonableSizeUrl}
           css={css`
             margin-bottom: 15px;
@@ -48,9 +59,9 @@ export const ImageDetails: React.FunctionComponent<{
             text-align: center;
           `}
         >
-          {props.image.width > 0 && props.image.height > 0 && (
+          {dimensions.width > 0 && dimensions.height > 0 && (
             <>
-              {props.image.width}x{props.image.height}
+              {dimensions.width}x{dimensions.height}
               <br></br>
               {props.image.size > 0
                 ? getUserFriendlySize(props.image.size)
