@@ -128,20 +128,22 @@ export const ImageSearch: React.FunctionComponent<{
             margin-left: 5px;
           `}
         ></Button>
-        <Select
-          value={searchLanguage}
-          onChange={handleLanguageChange}
-          size="small"
-          sx={{ marginLeft: 1 }}
-        >
-          {["en", "es"].map((value, index) => {
-            return (
-              <MenuItem key={value} value={value}>
-                {getLanguageNameFromTag(value)}
-              </MenuItem>
-            );
-          })}
-        </Select>{" "}
+        {props.provider.languages && (
+          <Select
+            value={searchLanguage}
+            onChange={handleLanguageChange}
+            size="small"
+            sx={{ marginLeft: 1 }}
+          >
+            {props.provider.languages.map((value, index) => {
+              return (
+                <MenuItem key={value} value={value}>
+                  {getLanguageNameFromTag(value)}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        )}
       </div>
       <SearchResults
         images={searchResult?.images || []}
