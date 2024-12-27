@@ -87,6 +87,16 @@ export const ImageSearch: React.FunctionComponent<{
           align-items: center;
         `}
       >
+        {props.provider.logo && (
+          <img
+            src={props.provider.logo}
+            alt={props.provider.label}
+            css={css`
+              height: 30px;
+              margin-right: 10px;
+            `}
+          />
+        )}
         <TextField
           id="outlined-basic"
           label="Search"

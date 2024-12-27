@@ -1,4 +1,5 @@
 import axios from "axios";
+import logo from "./pixabay.png";
 import {
   IImage,
   IImageCollectionProvider,
@@ -9,6 +10,7 @@ export class Pixabay implements IImageCollectionProvider {
   private apiKey: string | undefined;
   public label = "Pixabay";
   public id = "pixabay";
+  public logo = logo;
 
   public async search(
     searchTerm: string,

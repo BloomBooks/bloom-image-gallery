@@ -4,11 +4,13 @@ import {
   IImageCollectionProvider,
   ISearchResult,
 } from "./imageProvider";
+import logo from "./europeana.png";
 
 export class Europeana implements IImageCollectionProvider {
   private apiKey: string | undefined;
   public label = "Europeana";
   public id = "europeana";
+  public logo = logo;
 
   public async search(
     searchTerm: string,

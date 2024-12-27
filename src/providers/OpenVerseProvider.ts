@@ -4,11 +4,11 @@ import {
   IImageCollectionProvider,
   ISearchResult,
 } from "./imageProvider";
-
+import logo from "./openverse.png";
 export class OpenVerse implements IImageCollectionProvider {
   public label = "OpenVerse";
   public id = "openverse";
-
+  public logo = logo;
   private formatLicense(license: string): string {
     if (license.match(/^(by|by-sa|by-nd|by-nc|by-nc-sa|by-nc-nd)$/)) {
       return `CC-${license.toUpperCase()}`;

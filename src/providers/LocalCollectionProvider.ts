@@ -5,6 +5,7 @@ import {
   ISearchResult,
   IImage,
 } from "./imageProvider";
+import logo from "./aor.png"; // at this point if we had collections other than Art of Reading, they will all get this same logo
 
 export function useLocalCollections(
   add: (provider: IImageCollectionProvider) => void
@@ -20,6 +21,7 @@ export function useLocalCollections(
             languages: response.data.languages,
             search: async (searchTerm: string, language: string) =>
               await search(name, searchTerm, language),
+            logo: logo,
           });
         });
       })

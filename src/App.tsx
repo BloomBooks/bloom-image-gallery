@@ -144,18 +144,14 @@ function App() {
                   selected={provider === selectedProvider}
                   dense
                 >
+                  {provider.logo && (
+                    <ListItemIcon>
+                      <img src={provider.logo} width={24} />
+                    </ListItemIcon>
+                  )}
                   <ListItemText primary={provider.label}></ListItemText>
                 </ListItemButton>
               ))}
-            </List>
-            <Divider />
-            <List>
-              <ListItem>
-                <ListItemIcon>
-                  <AttributionIcon />
-                </ListItemIcon>
-                <ListItemText primary={"Give Credit"} />
-              </ListItem>
             </List>
           </Box>
         </Drawer>

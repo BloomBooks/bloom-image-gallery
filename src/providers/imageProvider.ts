@@ -1,6 +1,7 @@
 export interface IImageCollectionProvider {
   label: string;
   id: string;
+  logo?: string;
   languages?: string[];
   search(searchTerm: string, language: string): Promise<ISearchResult>;
 }
