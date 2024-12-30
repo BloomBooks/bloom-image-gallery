@@ -12,6 +12,8 @@ export class Europeana implements IImageCollectionProvider {
   public id = "europeana";
   public logo = logo;
   public needsApiUrl?: string;
+  private resultsLeftForPreviousQuery?: number;
+  private previousQuery?: string;
 
   public async checkReadiness() {
     await this.fetchApiKey();
@@ -20,6 +22,7 @@ export class Europeana implements IImageCollectionProvider {
 
   public async search(
     searchTerm: string,
+    pageZeroIndexed: number,
     language: string
   ): Promise<ISearchResult> {
     if (!this.apiKey) {
@@ -29,18 +32,36 @@ export class Europeana implements IImageCollectionProvider {
       };
     }
 
+    // Reset page count if search term changed
+    if (this.previousQuery !== searchTerm) {
+      this.resultsLeftForPreviousQuery = undefined;
+      this.previousQuery = searchTerm;
+    }
+
+    // Don't request beyond known results if we have that info
+    if (this.resultsLeftForPreviousQuery == 0) {
+      return {
+        images: [],
+      };
+    }
+
     try {
       // enhance: "Open" limits to CC0, CC BY, CC BY-SA. It includes "PDM" which Bloom wouldn't understand (but should).
       // If we used "restricted" then we get CC BY-ND and all the NC ones. It also includes sever
       // Bloom doesn't understand, InC-EDU, NoC-NC, NoC-OKLR.
       const reusability = "open";
+      const rowsPerPage = 20;
       const response = await axios.get<EuropeanaResponse>(
         `https://api.europeana.eu/api/v2/search.json?wskey=${
           this.apiKey
         }&query=${encodeURIComponent(
           searchTerm
-        )}&media=true&qf=TYPE:IMAGE&profile=minimal&reusability=${reusability}&rows=20`
+        )}&media=true&qf=TYPE:IMAGE&profile=minimal&reusability=${reusability}` +
+          `&rows=${rowsPerPage}&start=${pageZeroIndexed * rowsPerPage + 1}`
       );
+
+      this.resultsLeftForPreviousQuery =
+        response.data.totalResults - response.data.itemsCount;
 
       return {
         images: response.data.items

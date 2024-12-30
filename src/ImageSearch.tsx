@@ -24,6 +24,8 @@ export const ImageSearch: React.FunctionComponent<{
   const [searchLanguage, setSearchLanguage] = React.useState(props.lang);
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [lastRetrievedPageZeroIndexed, setLastRetrievedPageZeroIndexed] =
+    React.useState(0);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -45,8 +47,11 @@ export const ImageSearch: React.FunctionComponent<{
 
   function searchForImages(): void {
     setIsLoading(true);
-    const promise = props.provider.search(searchTerm, searchLanguage);
-    promise
+    setLastRetrievedPageZeroIndexed(0);
+    // Clear existing results immediately for new searches
+    setSearchResult(undefined);
+    props.provider
+      .search(searchTerm, 0, searchLanguage)
       .then((result: ISearchResult) => {
         props.handleSelection(undefined);
         setSearchResult(result);
@@ -57,6 +62,33 @@ export const ImageSearch: React.FunctionComponent<{
         setSearchResult(undefined);
         setIsLoading(false);
       });
+  }
+
+  function loadNextPage(): void {
+    if (searchResult && !isLoading) {
+      const nextPage = lastRetrievedPageZeroIndexed + 1;
+      setIsLoading(true);
+      // Don't clear existing results while loading more
+      props.provider
+        .search(searchTerm, nextPage, searchLanguage)
+        .then((result: ISearchResult) => {
+          setSearchResult({
+            images: [...searchResult.images, ...result.images],
+            error: result.error,
+          });
+          setLastRetrievedPageZeroIndexed(nextPage);
+          setIsLoading(false);
+        })
+        .catch((reason) => {
+          console.log(`Image search failed: ${reason}`);
+          setSearchResult({
+            ...searchResult,
+            error: `Failed to get more images: ${reason}`,
+          });
+          //setSearchResult(undefined);
+          setIsLoading(false);
+        });
+    }
   }
 
   function getLanguageNameFromTag(tag: string): string {
@@ -150,6 +182,8 @@ export const ImageSearch: React.FunctionComponent<{
         images={searchResult?.images || []}
         handleSelection={props.handleSelection}
         isLoading={isLoading}
+        error={searchResult?.error}
+        onBottomReached={loadNextPage}
       />
     </div>
   );

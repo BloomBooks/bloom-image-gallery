@@ -20,8 +20,11 @@ export function useLocalCollections(
             local: true,
             id: name,
             languages: response.data.languages,
-            search: async (searchTerm: string, language: string) =>
-              await search(name, searchTerm, language),
+            search: async (
+              searchTerm: string,
+              page: number,
+              language: string
+            ) => await search(name, searchTerm, language),
             logo: logo,
           });
         });

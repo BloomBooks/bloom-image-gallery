@@ -5,7 +5,11 @@ export interface IImageCollectionProvider {
   logo?: string;
   languages?: string[];
   needsApiUrl?: string;
-  search(searchTerm: string, language: string): Promise<ISearchResult>;
+  search(
+    searchTerm: string,
+    pageZeroIndexed: number,
+    language: string
+  ): Promise<ISearchResult>;
   checkReadiness?(): Promise<IImageCollectionProvider>;
 }
 

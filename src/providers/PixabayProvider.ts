@@ -12,6 +12,7 @@ export class Pixabay implements IImageCollectionProvider {
   public id = "pixabay";
   public logo = logo;
   public needsApiUrl?: string;
+  private totalHits: number = 0;
 
   public async checkReadiness() {
     await this.fetchApiKey();
@@ -20,6 +21,7 @@ export class Pixabay implements IImageCollectionProvider {
 
   public async search(
     searchTerm: string,
+    pageZeroIndexed: number,
     language: string
   ): Promise<ISearchResult> {
     if (!this.apiKey) {
@@ -29,13 +31,22 @@ export class Pixabay implements IImageCollectionProvider {
       };
     }
 
+    const perPage = 20;
+    // Check if we've already received all available results
+    if (this.totalHits > 0 && pageZeroIndexed * perPage >= this.totalHits) {
+      return { images: [] };
+    }
+
     const term = encodeURIComponent(searchTerm);
     const imageType = "illustration";
     const response = await axios.get<PixabayResponse>(
       `https://pixabay.com/api/?key=${this.apiKey}&safesearch=true&q=${term}` +
-        // &per_page=${perPage}
+        `&page=${pageZeroIndexed + 1}&per_page=${perPage}` +
         `&image_type=${imageType}`
     );
+
+    // Store the total hits for pagination
+    this.totalHits = response.data.totalHits;
 
     return {
       images: response.data.hits.map(
@@ -98,5 +109,6 @@ interface PixabayImage {
 }
 
 interface PixabayResponse {
+  totalHits: number; // how many we can get from this API
   hits: PixabayImage[];
 }

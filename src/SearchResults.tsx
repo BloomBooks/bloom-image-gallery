@@ -4,6 +4,7 @@ import {
   ImageListItem,
   CircularProgress,
   Skeleton,
+  Alert,
 } from "@mui/material";
 import React, { useState } from "react";
 import { IImage } from "./providers/imageProvider";
@@ -70,7 +71,20 @@ export const SearchResults: React.FunctionComponent<{
   images: IImage[];
   handleSelection: (item: IImage | undefined) => void;
   isLoading: boolean;
+  error?: string;
+  onBottomReached?: () => void;
 }> = (props) => {
+  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+    if (
+      scrollHeight - scrollTop <= clientHeight * 1.5 &&
+      !props.isLoading &&
+      props.onBottomReached
+    ) {
+      props.onBottomReached();
+    }
+  };
+
   return (
     <ErrorBoundary>
       <div
@@ -81,28 +95,39 @@ export const SearchResults: React.FunctionComponent<{
           width: 550px;
           overflow-y: scroll;
         `}
+        onScroll={handleScroll}
       >
-        {props.isLoading ? (
+        <ImageList cols={3} rowHeight={164}>
+          {props.images.map((image) => (
+            <ImageListItemWithLazyLoad
+              key={image.thumbnailUrl}
+              image={image}
+              onSelect={props.handleSelection}
+            />
+          ))}
+        </ImageList>
+        {props.isLoading && (
           <div
             css={css`
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
+              display: flex;
+              justify-content: center;
+              padding: 20px;
             `}
           >
             <CircularProgress />
           </div>
-        ) : (
-          <ImageList cols={3} rowHeight={164}>
-            {props.images.map((image) => (
-              <ImageListItemWithLazyLoad
-                key={image.thumbnailUrl}
-                image={image}
-                onSelect={props.handleSelection}
-              />
-            ))}
-          </ImageList>
+        )}
+        {props.error && (
+          <Alert
+            severity="error"
+            sx={{
+              margin: "10px",
+              position: "sticky",
+              bottom: 0,
+            }}
+          >
+            {props.error}
+          </Alert>
         )}
       </div>
     </ErrorBoundary>
