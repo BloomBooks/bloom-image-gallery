@@ -20,7 +20,7 @@ export const ImageSearch: React.FunctionComponent<{
   lang: string;
   handleSelection: (item: IImage | undefined) => void;
 }> = (props) => {
-  const [searchTerm, setSearchTerm] = React.useState("tree");
+  const [searchTerm, setSearchTerm] = React.useState("sun");
   const [searchLanguage, setSearchLanguage] = React.useState(props.lang);
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);

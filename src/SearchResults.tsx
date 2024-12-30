@@ -10,6 +10,14 @@ import { IImage } from "./providers/imageProvider";
 import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
+const formatImageTitle = (image: IImage): string => {
+  const parts: string[] = [];
+  //if (image.license) parts.push(`License: ${image.license}`);
+  if (image.width && image.height) parts.push(`${image.width}×${image.height}`);
+  //if (image.type) parts.push(`Type: ${image.type}`);
+  return parts.length > 0 ? parts.join(" | ") : "No metadata available";
+};
+
 const ImageListItemWithLazyLoad: React.FC<{
   image: IImage;
   onSelect: (image: IImage) => void;
@@ -45,6 +53,7 @@ const ImageListItemWithLazyLoad: React.FC<{
           src={image.thumbnailUrl}
           width={164}
           height={164}
+          title={formatImageTitle(image)}
           onLoad={() => setIsLoaded(true)}
           css={css`
             object-fit: scale-down;

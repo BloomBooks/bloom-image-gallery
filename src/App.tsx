@@ -16,10 +16,10 @@ import {
   ListItemText,
   Divider,
   ListItemButton,
+  Button,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import FolderIcon from "@mui/icons-material/Folder";
-import AttributionIcon from "@mui/icons-material/Attribution";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
 import { useLocalCollections } from "./providers/LocalCollectionProvider";
@@ -64,13 +64,13 @@ function App() {
     IImageCollectionProvider | undefined
   >(undefined);
 
-  const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
-    undefined
-  );
+  const [selectedImage, setSelectedImage] = React.useState<
+    IImage | undefined | null
+  >(undefined);
 
   useEffect(() => {
-    // select an initial collection
-    if (!selectedProvider && imageProviders.length > 0) {
+    // select an initial collection. Note that if selectedProvider is null, then that means we don't want a selection
+    if (selectedProvider === undefined && imageProviders.length > 0) {
       setSelectedProvider(imageProviders[0]);
     }
   }, [imageProviders]);
@@ -79,25 +79,23 @@ function App() {
     setSelectedProvider(provider);
   }
 
+  const sidebarHeadingStyle = css`
+    margin-top: 20px;
+    padding-bottom: 0;
+    span {
+      color: #555;
+      font-size: 14px;
+    }
+  `;
+
   return (
     <ThemeProvider theme={mdTheme}>
       <Box
         css={css`
-          //height: 100%;
+          height: 100vh;
           display: flex;
         `}
       >
-        <CssBaseline />
-        <AppBar
-          position="fixed"
-          sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        >
-          <Toolbar>
-            <Typography variant="h6" noWrap component="div">
-              Find Image
-            </Typography>
-          </Toolbar>
-        </AppBar>
         <Drawer
           variant="permanent"
           sx={{
@@ -106,15 +104,28 @@ function App() {
             [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
               boxSizing: "border-box",
+              height: "100%",
             },
           }}
         >
-          {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
-          <Toolbar />
-          <Box sx={{ overflow: "auto" }}>
+          <Box
+            sx={{
+              overflow: "auto",
+              height: "100%",
+            }}
+            onClick={(e) => {
+              // Only clear if clicking directly on the Box, not its children
+              if (e.target === e.currentTarget) {
+                setSelectedProvider(null);
+              }
+            }}
+          >
             <List>
-              <ListItem disablePadding>
-                <ListItemButton
+              <ListItem>
+                {/* a Material UI contained button with a folder icon */}
+                <Button
+                  variant={selectedProvider ? "outlined" : "contained"}
+                  startIcon={<FolderIcon />}
                   onClick={async () => {
                     try {
                       const [fileHandle] = await window.showOpenFilePicker({
@@ -142,42 +153,69 @@ function App() {
                     }
                   }}
                 >
-                  <ListItemIcon>
-                    <FolderIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={"Open File..."} />
-                </ListItemButton>
+                  Open File...
+                </Button>
               </ListItem>
-              {imageProviders?.map((provider) => (
-                <ListItemButton
-                  key={provider.id}
-                  onClick={() => handleSelectCollection(provider)}
-                  selected={provider === selectedProvider}
-                  dense
-                  sx={{
-                    position: "relative",
-                    "&::after": provider.needsApiUrl
-                      ? {
-                          content: '""',
-                          position: "absolute",
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          backgroundColor: "rgba(255, 255, 255, 0.5)",
-                          pointerEvents: "none",
-                        }
-                      : {},
-                  }}
-                >
-                  {provider.logo && (
-                    <ListItemIcon>
-                      <img src={provider.logo} width={24} />
-                    </ListItemIcon>
-                  )}
-                  <ListItemText primary={provider.label}></ListItemText>
-                </ListItemButton>
-              ))}
+
+              <ListItem>
+                <ListItemText
+                  primary="Online Sources"
+                  css={sidebarHeadingStyle}
+                />
+              </ListItem>
+              {imageProviders
+                ?.filter((p) => !p.local)
+                .map((provider) => (
+                  <ListItemButton
+                    key={provider.id}
+                    onClick={() => handleSelectCollection(provider)}
+                    selected={provider === selectedProvider}
+                    dense
+                  >
+                    {provider.logo && (
+                      <ListItemIcon>
+                        <img src={provider.logo} width={24} />
+                      </ListItemIcon>
+                    )}
+                    <ListItemText primary={provider.label}></ListItemText>
+                  </ListItemButton>
+                ))}
+
+              <ListItem css={sidebarHeadingStyle}>
+                <ListItemText primary="Collections on this Computer" />
+              </ListItem>
+              {imageProviders
+                ?.filter((p) => p.local)
+                .map((provider) => (
+                  <ListItemButton
+                    key={provider.id}
+                    onClick={() => handleSelectCollection(provider)}
+                    selected={provider === selectedProvider}
+                    dense
+                    sx={{
+                      position: "relative",
+                      "&::after": provider.needsApiUrl
+                        ? {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "rgba(255, 255, 255, 0.5)",
+                            pointerEvents: "none",
+                          }
+                        : {},
+                    }}
+                  >
+                    {provider.logo && (
+                      <ListItemIcon>
+                        <img src={provider.logo} width={24} />
+                      </ListItemIcon>
+                    )}
+                    <ListItemText primary={provider.label}></ListItemText>
+                  </ListItemButton>
+                ))}
             </List>
           </Box>
         </Drawer>
@@ -190,8 +228,6 @@ function App() {
             width: 100%;
           `}
         >
-          {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
-          <Toolbar />
           {selectedProvider?.needsApiUrl && (
             <Box
               sx={{

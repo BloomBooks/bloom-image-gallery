@@ -17,6 +17,7 @@ export function useLocalCollections(
         response.data.collections.forEach((name) => {
           add({
             label: name,
+            local: true,
             id: name,
             languages: response.data.languages,
             search: async (searchTerm: string, language: string) =>

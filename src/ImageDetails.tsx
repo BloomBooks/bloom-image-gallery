@@ -101,13 +101,28 @@ export const ImageDetails: React.FunctionComponent<{
           {props.image.license && (
             <>
               <br />
-              {props.image.license}
+              {props.image.licenseUrl ? (
+                <a
+                  href={props.image.licenseUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {props.image.license}
+                </a>
+              ) : (
+                props.image.license
+              )}
             </>
           )}
           {props.image.webSiteUrl && (
             <>
               <br />
-              <a href={props.image.webSiteUrl} target="_blank" rel="noreferrer">
+              <a
+                href={props.image.webSiteUrl}
+                target="_blank"
+                rel="noreferrer"
+                title={props.image.webSiteUrl}
+              >
                 Source
               </a>
             </>

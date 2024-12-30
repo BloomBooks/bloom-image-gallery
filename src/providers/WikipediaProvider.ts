@@ -15,6 +15,12 @@ interface WikiImageInfo {
     Artist?: {
       value: string;
     };
+    License?: {
+      value: string;
+    };
+    LicenseShortName?: {
+      value: string;
+    };
   };
 }
 
@@ -65,7 +71,10 @@ export class WikipediaProvider implements IImageCollectionProvider {
             type: "image",
             width: info.width,
             height: info.height,
-            license: "Wikimedia Commons",
+            license:
+              info.extmetadata?.LicenseShortName?.value ||
+              info.extmetadata?.License?.value ||
+              "Wikimedia Commons",
             licenseUrl: "https://commons.wikimedia.org/wiki/Commons:Licensing",
             creator: artist,
             raw: info,

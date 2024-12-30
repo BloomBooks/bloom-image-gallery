@@ -48,6 +48,7 @@ export class OpenVerse implements IImageCollectionProvider {
               licenseUrl: result.license_url,
               creator: result.creator,
               creatorUrl: result.creator_url,
+              webSiteUrl: result.foreign_landing_url,
               raw: result,
             }) as IImage
         ),
@@ -69,6 +70,7 @@ interface OpenVerseImage {
   thumbnail: string;
   creator: string;
   creator_url: string;
+  foreign_landing_url: string;
   license: string;
   license_url: string;
   mime_type: string;

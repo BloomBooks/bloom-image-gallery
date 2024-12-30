@@ -1,4 +1,5 @@
 export interface IImageCollectionProvider {
+  local?: boolean;
   label: string;
   id: string;
   logo?: string;

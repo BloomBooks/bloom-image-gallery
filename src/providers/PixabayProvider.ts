@@ -29,11 +29,12 @@ export class Pixabay implements IImageCollectionProvider {
       };
     }
 
-    const perPage = searchTerm.toLowerCase() === "tree" ? 4 : 20;
     const term = encodeURIComponent(searchTerm);
     const imageType = "illustration";
     const response = await axios.get<PixabayResponse>(
-      `https://pixabay.com/api/?key=${this.apiKey}&safesearch=true&q=${term}&per_page=${perPage}&image_type=${imageType}`
+      `https://pixabay.com/api/?key=${this.apiKey}&safesearch=true&q=${term}` +
+        // &per_page=${perPage}
+        `&image_type=${imageType}`
     );
 
     return {
