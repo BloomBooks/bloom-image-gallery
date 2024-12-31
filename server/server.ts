@@ -5,17 +5,16 @@ import cors from "cors";
 import { CommonRoutesConfig } from "./common.routes.config.js";
 import { LocalCollectionRoutes } from "./localCollection.routes.config.js";
 import { ExternalApiKeyRoutes } from "./externalCollection.routes.config.js";
+import { BloomConnectorRoutes } from "./bloomConnectorRoutes.js";
 
 const app: express.Application = express();
 const server: http.Server = http.createServer(app);
 const port = 5000;
 const routes: Array<CommonRoutesConfig> = [];
 
-// Define the base path prefix
-const basePathPrefix = "/image-toolbox";
-
 // here we are adding middleware to parse all incoming requests as JSON
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // here we are adding middleware to allow cross-origin requests
 app.use(cors());
@@ -26,9 +25,16 @@ const router = express.Router();
 // Add routes to the router instead of directly to app
 routes.push(new LocalCollectionRoutes(router));
 routes.push(new ExternalApiKeyRoutes(router));
+routes.push(new BloomConnectorRoutes(router));
 
 // Mount the router under the prefix
-app.use(basePathPrefix, router);
+app.use(router);
+
+// Add 404 handling for unknown routes
+app.use((req: express.Request, res: express.Response) => {
+  console.error(`Cannot ${req.method} ${req.url}`);
+  res.status(404).json({ error: `Cannot ${req.method} ${req.url}` });
+});
 
 // this is a simple route to make sure everything is working properly
 const runningMessage = `Server running at http://localhost:${port}`;
