@@ -56,6 +56,7 @@ export class OpenVerse implements IImageCollectionProvider {
       this.pageCountForPreviousQuery = response.data.page_count;
 
       return {
+        totalImages: response.data.result_count,
         images: response.data.results.map(
           (result: OpenVerseImage) =>
             ({
@@ -100,6 +101,7 @@ interface OpenVerseImage {
 }
 
 interface OpenVerseResponse {
+  result_count: number;
   results: OpenVerseImage[];
   page: number;
   page_count: number;

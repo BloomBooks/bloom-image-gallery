@@ -174,6 +174,17 @@ export const ImageSearch: React.FunctionComponent<{
                 margin-left: 5px;
               `}
             ></Button>
+            {searchResult?.totalImages !== undefined && (
+              <span
+                css={css`
+                  margin-left: 10px;
+                  color: #666;
+                  font-size: 0.9em;
+                `}
+              >
+                {searchResult.totalImages.toLocaleString()} images
+              </span>
+            )}
           </>
         )}
         {props.provider.languages && (

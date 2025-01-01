@@ -16,6 +16,7 @@ export interface IImageCollectionProvider {
 
 export interface ISearchResult {
   images: IImage[];
+  totalImages?: number;
   error?: string;
 }
 
