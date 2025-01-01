@@ -26,7 +26,8 @@ interface WikiImageInfo {
 
 interface WikiResponse {
   continue?: {
-    gimcontinue: string;
+    gsroffset: number;
+    continue: string;
   };
   query?: {
     pages?: {
@@ -64,20 +65,24 @@ export class WikipediaProvider implements IImageCollectionProvider {
       }
       const term = encodeURIComponent(searchTerm);
       const limit = 20;
-      const continuePart =
-        this.continueToken !== undefined && this.continueToken.length > 0
-          ? `&gimcontinue=${this.continueToken}`
-          : "";
+      const continuePart = this.continueToken
+        ? `&continue=${this.continueToken}&gsroffset=${pageZeroIndexed * limit}`
+        : "";
+
       const response = await axios.get<WikiResponse>(
-        `https://commons.wikimedia.org/w/api.php?action=query&generator=images&iiprop=url|thumburl|size|extmetadata` +
+        `https://commons.wikimedia.org/w/api.php?action=query` +
+          `&generator=search` +
+          `&gsrsearch="${term}"` +
+          `&gsrnamespace=6` +
           `&prop=imageinfo` +
+          `&iiprop=url|extmetadata|mime|size` +
           `&iiurlwidth=300` +
-          `&format=json&origin=*&titles=${term}` +
-          `&gimlimit=${limit}` +
+          `&format=json&origin=*` +
+          `&gsrlimit=${limit}` +
           continuePart
       );
 
-      this.continueToken = response.data.continue?.gimcontinue; // will go to undefined when we reach the end
+      this.continueToken = response.data.continue?.continue;
       const pages = response.data.query?.pages || {};
       const images: IImage[] = [];
 
@@ -91,7 +96,7 @@ export class WikipediaProvider implements IImageCollectionProvider {
           images.push({
             thumbnailUrl: info.thumburl || info.url,
             reasonableSizeUrl: info.url,
-            webSiteUrl: info.descriptionurl,
+            sourceWebPage: info.descriptionurl,
             size: 0,
             type: "image",
             width: info.width,
