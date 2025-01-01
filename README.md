@@ -1,13 +1,18 @@
 ![Static Badge](https://img.shields.io/badge/status-WIP-blue)
 
-An experimental react component that allows searching from multiple sites as well as local collections like Art of Reading.
+An experimental react component for Bloom that supports finding images and metadata needed for legal reuse via:
+* file system
+* online image sites
+* local collections like Art of Reading
+
+![image](https://github.com/user-attachments/assets/28371b91-a275-4f62-9e56-0d3d139f5d18)
+
+This repository includes a little server process for use during development, but the component is indetended to be used with Bloom Editor as its backend eventually. The server does very little except for local collections.
 
 # Developing
 
 1. Requires [Volta](https://github.com/volta-cli/volta)
-2. `yarn dev`
-3. In Chrome, go to chrome://extensions
-4. Enable "Developer mode"
-5. Click "Load unpacked", choose the `dist/` folder produced by `yarn dev`
-6. In the extension card named "Download to Bloom", click "Inspect views <u>service worker</u>". This will open a DevTools window for the extension.
-7. As you make changes, the extension will automatically update.
+2. `yarn dev` will run both the server and open a browser tab with the client.
+
+## Unit Tests
+`yarn test`
