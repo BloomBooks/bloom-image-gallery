@@ -1,4 +1,6 @@
 import axios from "axios";
+import React from "react";
+import { Alert } from "@mui/material";
 import {
   IImageCollectionProvider,
   ISearchResult,
@@ -11,9 +13,21 @@ import { basePathPrefix, port } from "../../common/locations";
 export class BrowserExtensionQueueProvider implements IImageCollectionProvider {
   label = "Browser Queue";
   id = "browser-queue";
-  local = true;
+  local = false;
   justAListNoQuery = true;
   logo = logo;
+
+  aboutComponent(): JSX.Element {
+    return (
+      <Alert severity="info">
+        This area shows images saved by the Bloom Helper browser extension. When
+        the extension is active, it keeps track of the images you download from
+        websites (like Pixabay). It also saves important details, like the
+        creator’s name and the license information. When you’re ready to add
+        images to your book, come back here to find and use them.
+      </Alert>
+    );
+  }
 
   async search(
     searchTerm: string,

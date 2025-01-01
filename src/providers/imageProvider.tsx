@@ -1,3 +1,6 @@
+import { Alert } from "@mui/material";
+import React from "react";
+
 export interface IImageCollectionProvider {
   local?: boolean;
   label: string;
@@ -12,6 +15,7 @@ export interface IImageCollectionProvider {
     language: string
   ): Promise<ISearchResult>;
   checkReadiness?(): Promise<IImageCollectionProvider>;
+  aboutComponent?(): JSX.Element;
 }
 
 export interface ISearchResult {
@@ -35,3 +39,13 @@ export interface IImage {
   creatorUrl?: string;
   raw?: object;
 }
+
+export const StandardDisclaimer: React.FunctionComponent<{}> = () => {
+  return (
+    <Alert severity="warning">
+      These images are not from Bloom or SIL. This tool requests images suitable
+      for general audiences. However, we cannot guarantee that all images will
+      be inoffensive.
+    </Alert>
+  );
+};

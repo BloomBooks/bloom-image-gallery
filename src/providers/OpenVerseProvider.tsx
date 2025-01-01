@@ -3,8 +3,11 @@ import {
   IImage,
   IImageCollectionProvider,
   ISearchResult,
+  StandardDisclaimer,
 } from "./imageProvider";
 import logo from "./openverse.png";
+import { Alert } from "@mui/material";
+import React from "react";
 export class OpenVerse implements IImageCollectionProvider {
   public label = "OpenVerse";
   public id = "openverse";
@@ -82,6 +85,20 @@ export class OpenVerse implements IImageCollectionProvider {
         error: "Failed to fetch images from OpenVerse",
       };
     }
+  }
+
+  public aboutComponent(): JSX.Element {
+    return (
+      <>
+        <Alert severity="info">
+          Openverse searches multiple public repositories for CC-licensed and
+          public domain works.{" "}
+          <a href="https://openverse.org/about">More info</a>
+        </Alert>
+        <br />
+        <StandardDisclaimer />
+      </>
+    );
   }
 }
 

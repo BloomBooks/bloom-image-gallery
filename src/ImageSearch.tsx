@@ -5,8 +5,9 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  Alert,
 } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { Provider, useEffect } from "react";
 import { SearchResults } from "./SearchResults";
 import SearchIcon from "@mui/icons-material/Search";
 import {
@@ -204,6 +205,9 @@ export const ImageSearch: React.FunctionComponent<{
           </Select>
         )}
       </div>
+      {(!searchResult || searchResult.images.length === 0) && (
+        <About provider={props.provider} />
+      )}
       <SearchResults
         images={searchResult?.images || []}
         handleSelection={props.handleSelection}
@@ -211,6 +215,21 @@ export const ImageSearch: React.FunctionComponent<{
         error={searchResult?.error}
         onBottomReached={loadNextPage}
       />
+    </div>
+  );
+};
+
+const About: React.FunctionComponent<{ provider: IImageCollectionProvider }> = (
+  props
+) => {
+  return (
+    <div
+      css={css`
+        margin: 20px 0;
+        max-width: 500px;
+      `}
+    >
+      {props.provider.aboutComponent && props.provider.aboutComponent()}
     </div>
   );
 };

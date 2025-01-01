@@ -5,7 +5,10 @@ import {
   IImage,
   IImageCollectionProvider,
   ISearchResult,
+  StandardDisclaimer,
 } from "./imageProvider";
+import { Alert } from "@mui/material";
+import React from "react";
 
 export class Pixabay implements IImageCollectionProvider {
   private apiKey: string | undefined;
@@ -67,6 +70,19 @@ export class Pixabay implements IImageCollectionProvider {
           }) as IImage
       ),
     };
+  }
+
+  public aboutComponent(): JSX.Element {
+    return (
+      <>
+        <Alert severity="info">
+          Pixabay is a large collection of images that may be used for free
+          without attribution.
+        </Alert>
+        <br />
+        <StandardDisclaimer />
+      </>
+    );
   }
 
   private async fetchApiKey() {

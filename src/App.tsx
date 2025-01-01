@@ -66,9 +66,9 @@ function App() {
     IImageCollectionProvider | undefined
   >(undefined);
 
-  const [selectedImage, setSelectedImage] = React.useState<
-    IImage | undefined | null
-  >(undefined);
+  const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
+    undefined
+  );
 
   useEffect(() => {
     // select an initial collection. Note that if selectedProvider is null, then that means we don't want a selection
@@ -118,7 +118,7 @@ function App() {
             onClick={(e) => {
               // Only clear if clicking directly on the Box, not its children
               if (e.target === e.currentTarget) {
-                setSelectedProvider(null);
+                setSelectedProvider(undefined);
               }
             }}
           >

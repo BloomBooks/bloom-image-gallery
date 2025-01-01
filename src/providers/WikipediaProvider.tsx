@@ -3,8 +3,11 @@ import {
   IImage,
   IImageCollectionProvider,
   ISearchResult,
+  StandardDisclaimer,
 } from "./imageProvider";
 import logo from "./WikiCommons.png";
+import { Alert } from "@mui/material";
+import React from "react";
 interface WikiImageInfo {
   descriptionurl: string;
   url: string;
@@ -119,5 +122,18 @@ export class WikipediaProvider implements IImageCollectionProvider {
         error: `Error fetching from Wikimedia: ${error}`,
       };
     }
+  }
+
+  public aboutComponent(): JSX.Element {
+    return (
+      <>
+        <Alert severity="info">
+          Wikimedia Commons is a collection of media that is free to use. The
+          OpenVerse search also includes results from Wikimedia Commons.
+        </Alert>
+        <br />
+        <StandardDisclaimer />
+      </>
+    );
   }
 }
