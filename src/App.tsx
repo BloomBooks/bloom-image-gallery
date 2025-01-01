@@ -29,6 +29,7 @@ import { Europeana } from "./providers/EuropeanaProvider";
 import { WikipediaProvider } from "./providers/WikipediaProvider";
 import { BrowserExtensionQueueProvider } from "./providers/BrowserExtensionQueueProvider";
 import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
+import { ArtOfReadingProvider } from "./providers/ArtOfReadingProvider";
 
 const mdTheme = createTheme();
 const drawerWidth = 200;
@@ -52,6 +53,7 @@ function App() {
     const initProviders = async () => {
       addToImageProviders(new OpenVerse());
       addToImageProviders(new WikipediaProvider());
+      addToImageProviders(await new ArtOfReadingProvider().checkReadiness());
       addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(await new Pixabay().checkReadiness());
       addToImageProviders(await new Europeana().checkReadiness());
@@ -60,7 +62,7 @@ function App() {
   }, []); // Only run once on mount
 
   // Handle local collections separately
-  useLocalCollections(addToImageProviders);
+  //useLocalCollections(addToImageProviders);
 
   const [selectedProvider, setSelectedProvider] = useState<
     IImageCollectionProvider | undefined

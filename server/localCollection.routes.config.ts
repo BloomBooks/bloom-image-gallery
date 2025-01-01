@@ -2,6 +2,7 @@ import { CommonRoutesConfig } from "./common.routes.config.js";
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { basePathPrefix } from "../common/locations.js";
 
 // This class implements an API for accessing the file system looking for pictures.
 // Two types are search are provided: browsing an image collection like Art of Reading
@@ -42,22 +43,35 @@ export class LocalCollectionRoutes extends CommonRoutesConfig {
     this.app
       .route("/local-collections/search/:collection/:lang/:term")
       .get((req: express.Request, res: express.Response) => {
+        const decodedCollection = decodeURIComponent(req.params.collection);
+        const decodedTerm = decodeURIComponent(req.params.term);
         const files =
           this.indexes
-            .get(req.params.collection)
+            .get(decodedCollection)
             ?.get(req.params.lang)
-            ?.get(req.params.term) || [];
-        // path should be something like "http://localhost:5000/image-toolbox/local-collections/collection-image-file/Art%20of%20Reading/Art%20of%20Reading%2fimages"
+            ?.get(decodedTerm) || [];
         const paths = files.map(
           (file) =>
-            `${req.protocol}://${req.get("host")}/image-toolbox/local-collections/collection-image-file/${req.params.collection}/${file}`
+            `${req.protocol}://${req.get("host")}${basePathPrefix}/local-collections/collection-image-file/${encodeURIComponent(decodedCollection)}/${file}`
         );
         res.status(200).send(paths);
       });
     this.app
       .route("/local-collections/collection-image-file/:collection/:file")
       .get((req: express.Request, res: express.Response) => {
-        const filepath = `${this.baseFolder}\\${req.params.collection}\\images\\${req.params.file}`;
+        console.log(
+          `****** collection: ${req.params.collection}, file: ${req.params.file}`
+        );
+        const decodedCollection = decodeURIComponent(req.params.collection);
+        const decodedFile = decodeURIComponent(req.params.file)
+          .replace(/%2f/g, path.sep)
+          .replace(/\//g, path.sep);
+        const filepath = path.join(
+          this.baseFolder,
+          decodedCollection,
+          "images",
+          decodedFile
+        );
         this.returnImageFileContent(filepath, res);
       });
     this.app

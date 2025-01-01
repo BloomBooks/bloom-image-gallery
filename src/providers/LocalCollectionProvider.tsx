@@ -34,7 +34,7 @@ export function useLocalCollections(
       })
       .catch((reason) => {
         console.log(
-          `axios call image-toolbox/local-collections/collections failed: ${reason}`
+          `axios call local-collections/collections failed: ${reason}`
         );
       });
   }, [add]);
@@ -63,3 +63,14 @@ async function search(
     ),
   };
 }
+
+public aboutComponent(): JSX.Element {
+    return (
+      <>
+        <ProviderSummary>
+          Something about the Art of Reading collection.
+        </ProviderSummary>
+       
+      </>
+    );
+  }

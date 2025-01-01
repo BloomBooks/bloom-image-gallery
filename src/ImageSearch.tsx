@@ -21,7 +21,7 @@ export const ImageSearch: React.FunctionComponent<{
   lang: string;
   handleSelection: (item: IImage | undefined) => void;
 }> = (props) => {
-  const [searchTerm, setSearchTerm] = React.useState("soap bubbles");
+  const [searchTerm, setSearchTerm] = React.useState("bubble");
   const [searchLanguage, setSearchLanguage] = React.useState(props.lang);
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);
