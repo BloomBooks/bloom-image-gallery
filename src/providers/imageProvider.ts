@@ -5,6 +5,7 @@ export interface IImageCollectionProvider {
   logo?: string;
   languages?: string[];
   needsApiUrl?: string;
+  justAListNoQuery?: boolean; // browser-queue sets this to true
   search(
     searchTerm: string,
     pageZeroIndexed: number,

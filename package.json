@@ -5,7 +5,7 @@
   "scripts": {
     "client": "vite",
     "dev": "concurrently \"npm run client\" \"npm run server\"",
-    "server": "concurrently \"tsc -p server/tsconfig.json --watch\" \"nodemon serverOutput/server.js\"",
+    "server": "concurrently \"tsc -p server/tsconfig.json --watch\" \"nodemon serverOutput/server/server.js\"",
     "build": "tsc && vite build && tsc -p server/tsconfig.json",
     "lint": "eslint --config eslint.config.js ."
   },

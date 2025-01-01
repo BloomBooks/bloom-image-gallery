@@ -104,7 +104,11 @@ export const ImageSearch: React.FunctionComponent<{
 
   useEffect(() => {
     setSearchResult(undefined);
-  }, [props.provider, props.lang]);
+    // If this is just a list with no query capability, load it immediately
+    if (props.provider.justAListNoQuery) {
+      searchForImages();
+    }
+  }, [props.provider, props.lang]); // moved searchForImages out of deps to avoid infinite loop
 
   return (
     <div
@@ -130,37 +134,48 @@ export const ImageSearch: React.FunctionComponent<{
             `}
           />
         )}
-        <TextField
-          id="outlined-basic"
-          label="Search"
-          variant="outlined"
-          size="small"
-          value={searchTerm}
-          onKeyDown={handleKeyDown}
-          onChange={handleChange}
-          sx={{ width: "150px" }}
-        ></TextField>
-        {/* MUI IconButton by itself can't be contained. So we use a normal
-        Button with no text. */}
-        <Button
-          variant="contained"
-          size="small"
-          onClick={() => searchForImages()}
-          startIcon={
-            <SearchIcon
+        {props.provider.justAListNoQuery ? (
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => searchForImages()}
+            startIcon={<SearchIcon />}
+          >
+            Refresh
+          </Button>
+        ) : (
+          <>
+            <TextField
+              id="outlined-basic"
+              label="Search"
+              variant="outlined"
+              size="small"
+              value={searchTerm}
+              onKeyDown={handleKeyDown}
+              onChange={handleChange}
+              sx={{ width: "150px" }}
+            ></TextField>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => searchForImages()}
+              startIcon={
+                <SearchIcon
+                  css={css`
+                    width: 30px;
+                    height: 30px;
+                  `}
+                />
+              }
               css={css`
-                width: 30px;
-                height: 30px;
+                span {
+                  margin: 0;
+                }
+                margin-left: 5px;
               `}
-            />
-          }
-          css={css`
-            span {
-              margin: 0; // center the icon
-            }
-            margin-left: 5px;
-          `}
-        ></Button>
+            ></Button>
+          </>
+        )}
         {props.provider.languages && (
           <Select
             value={searchLanguage}

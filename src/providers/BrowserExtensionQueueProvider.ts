@@ -4,11 +4,15 @@ import {
   ISearchResult,
   IImage,
 } from "./imageProvider";
+import logo from "./chrome.png";
+import { BloomMediaMetadata } from "../bloomMediaMetadata";
 
-export class BloomChromeExtensionProvider implements IImageCollectionProvider {
-  label = "Bloom Chrome Extension";
-  id = "bloom-chrome-extension";
+export class BrowserExtensionQueueProvider implements IImageCollectionProvider {
+  label = "Browser Queue";
+  id = "browser-queue";
   local = true;
+  justAListNoQuery = true;
+  logo = logo;
 
   async search(
     searchTerm: string,
@@ -16,22 +20,27 @@ export class BloomChromeExtensionProvider implements IImageCollectionProvider {
     language: string
   ): Promise<ISearchResult> {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/image-toolbox/getDownloads"
-      );
+      const response = await axios.get("http://localhost:5000/getDownloads");
       console.log(
         "BloomChromeExtensionProvider search response",
         response.data
       );
-      const downloads = response.data || [];
+      // the data is an array of BloomMediaMetadata
+      const downloads = (response.data as BloomMediaMetadata[]) || [];
 
       const images: IImage[] = downloads.map((download: any) => ({
         thumbnailUrl: download.url,
         reasonableSizeUrl: download.url,
         size: download.size || 0,
-        type: download.type || "image/jpeg",
+        type: download.type || "image/jpeg", // todo
         width: download.width,
         height: download.height,
+        raw: download,
+        license: download.license,
+        licenseUrl: download.licenseUrl,
+        creator: download.creator,
+        creatorUrl: download.creatorUrl,
+        sourceWebPage: download.sourceWebPage,
       }));
 
       return { images };

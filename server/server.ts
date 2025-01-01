@@ -5,7 +5,7 @@ import cors from "cors";
 import { CommonRoutesConfig } from "./common.routes.config.js";
 import { LocalCollectionRoutes } from "./localCollection.routes.config.js";
 import { ExternalApiKeyRoutes } from "./externalCollection.routes.config.js";
-import { BloomConnectorRoutes } from "./bloomConnectorRoutes.js";
+import { BrowserExtensionQueueRoutes } from "./browserExtensionQueueRoutes.js";
 
 const app: express.Application = express();
 const server: http.Server = http.createServer(app);
@@ -25,7 +25,7 @@ const router = express.Router();
 // Add routes to the router instead of directly to app
 routes.push(new LocalCollectionRoutes(router));
 routes.push(new ExternalApiKeyRoutes(router));
-routes.push(new BloomConnectorRoutes(router));
+routes.push(new BrowserExtensionQueueRoutes(router));
 
 // Mount the router under the prefix
 app.use(router);

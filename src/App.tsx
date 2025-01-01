@@ -27,7 +27,7 @@ import { Pixabay } from "./providers/PixabayProvider";
 import { OpenVerse } from "./providers/OpenVerseProvider";
 import { Europeana } from "./providers/EuropeanaProvider";
 import { WikipediaProvider } from "./providers/WikipediaProvider";
-import { BloomChromeExtensionProvider } from "./providers/BloomChromeExtensionProvider";
+import { BrowserExtensionQueueProvider } from "./providers/BrowserExtensionQueueProvider";
 import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
 
 const mdTheme = createTheme();
@@ -50,7 +50,7 @@ function App() {
   // Initialize built-in providers
   useEffect(() => {
     const initProviders = async () => {
-      addToImageProviders(new BloomChromeExtensionProvider());
+      addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(new OpenVerse());
       addToImageProviders(new WikipediaProvider());
       addToImageProviders(await new Pixabay().checkReadiness());
