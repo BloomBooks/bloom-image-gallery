@@ -46,6 +46,7 @@ export class WikipediaProvider implements IImageCollectionProvider {
   public label = "Wikimedia Commons";
   public id = "wikipedia";
   public logo = logo;
+  public isReady = true;
 
   // Wikipedia doesn't have normal paging, so we need these two
   private continueToken: string | undefined;

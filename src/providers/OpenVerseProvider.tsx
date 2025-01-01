@@ -12,6 +12,7 @@ export class OpenVerse implements IImageCollectionProvider {
   public label = "OpenVerse";
   public id = "openverse";
   public logo = logo;
+  public isReady = true;
   private pageCountForPreviousQuery?: number;
   private previousQuery?: string;
 
@@ -47,7 +48,9 @@ export class OpenVerse implements IImageCollectionProvider {
       const response = await axios.get<OpenVerseResponse>(
         `https://api.openverse.org/v1/images/?q=${encodeURIComponent(
           searchTerm
-        )}&page_size=20&page=${pageZeroIndexed + 1}`,
+        )}` +
+          //`&mature=false` + // Actually in Jan 2025 this gives more mature results than not mentioning it
+          `&page_size=20&page=${pageZeroIndexed + 1}`,
         {
           headers: {
             Accept: "application/json",

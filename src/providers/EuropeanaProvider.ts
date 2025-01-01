@@ -12,7 +12,7 @@ export class Europeana implements IImageCollectionProvider {
   public label = "Europeana";
   public id = "europeana";
   public logo = logo;
-  public needsApiUrl?: string;
+  public isReady: boolean = false;
   private resultsLeftForPreviousQuery?: number;
   private previousQuery?: string;
 
@@ -98,8 +98,8 @@ export class Europeana implements IImageCollectionProvider {
         );
         this.apiKey = response.data.key;
         // if we didn't get one
-        if (!this.apiKey) {
-          this.needsApiUrl = "https://pro.europeana.eu/page/get-api";
+        if (this.apiKey) {
+          this.isReady = true; //"https://pro.europeana.eu/page/get-api";
         }
       } catch (error) {
         console.error("Failed to fetch Europeana API key:", error);

@@ -11,11 +11,12 @@ import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
 import { basePathPrefix, port } from "../../common/locations";
 
 export class BrowserExtensionQueueProvider implements IImageCollectionProvider {
-  label = "Browser Queue";
-  id = "browser-queue";
-  local = false;
-  justAListNoQuery = true;
-  logo = logo;
+  readonly label = "Browser Queue";
+  readonly id = "browser-queue";
+  readonly local = false;
+  readonly justAListNoQuery = true;
+  readonly logo = logo;
+  readonly isReady = true; // todo: set to false until we hear from the extension?
 
   aboutComponent(): JSX.Element {
     return (

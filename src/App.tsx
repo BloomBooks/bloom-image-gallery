@@ -50,9 +50,9 @@ function App() {
   // Initialize built-in providers
   useEffect(() => {
     const initProviders = async () => {
-      addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(new OpenVerse());
       addToImageProviders(new WikipediaProvider());
+      addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(await new Pixabay().checkReadiness());
       addToImageProviders(await new Europeana().checkReadiness());
     };
@@ -173,6 +173,21 @@ function App() {
                     onClick={() => handleSelectCollection(provider)}
                     selected={provider === selectedProvider}
                     dense
+                    sx={{
+                      position: "relative",
+                      "&::after": !provider.isReady
+                        ? {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "#ffffff80",
+                            pointerEvents: "none",
+                          }
+                        : {},
+                    }}
                   >
                     {provider.logo && (
                       <ListItemIcon>
@@ -196,7 +211,8 @@ function App() {
                     dense
                     sx={{
                       position: "relative",
-                      "&::after": provider.needsApiUrl
+                      // Add a semi-transparent overlay to show that it's not ready
+                      "&::after": !provider.isReady
                         ? {
                             content: '""',
                             position: "absolute",
@@ -204,8 +220,7 @@ function App() {
                             left: 0,
                             right: 0,
                             bottom: 0,
-                            backgroundColor: "rgba(255, 255, 255, 0.5)",
-                            pointerEvents: "none",
+                            backgroundColor: "#ffffff80",
                           }
                         : {},
                     }}
@@ -230,32 +245,7 @@ function App() {
             width: 100%;
           `}
         >
-          {selectedProvider?.needsApiUrl && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                margin: "20px",
-              }}
-            >
-              <Typography variant="caption">
-                {`(This is a message for developers. For users, we'll either need a UI for pasting in or we'll provide the keys via our server.)`}
-                <br />
-                <br />
-                {`Before you can use ${selectedProvider.label}, you will need to obtain a free API key from them for at `}
-                {/* eslint-disable-next-line react/jsx-no-target-blank */}
-                <a href={selectedProvider.needsApiUrl} target="_blank">
-                  {selectedProvider.needsApiUrl}
-                </a>
-                <br />
-                <br />
-                {`Once you have the key, put it in an environment variable named ${selectedProvider.label}. Remember to restart the app or dev environment after setting the key.`}
-              </Typography>
-            </Box>
-          )}
-          {selectedProvider && !selectedProvider.needsApiUrl && (
+          {selectedProvider && (
             <div
               css={css`
                 display: flex;

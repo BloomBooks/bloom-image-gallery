@@ -7,7 +7,7 @@ export interface IImageCollectionProvider {
   id: string;
   logo?: string;
   languages?: string[];
-  needsApiUrl?: string;
+  isReady: boolean;
   justAListNoQuery?: boolean; // browser-queue sets this to true
   search(
     searchTerm: string,
@@ -49,3 +49,28 @@ export const StandardDisclaimer: React.FunctionComponent<{}> = () => {
     </Alert>
   );
 };
+
+/*
+
+  {!selectedProvider?.isReady && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                margin: "20px",
+              }}
+            >
+              <Typography variant="caption">
+                {`(This is a message for developers. For users, we'll either need a UI for pasting in or we'll provide the keys via our server.)`}
+                <br />
+                <br />
+                {`Before you can use ${selectedProvider?.label}, you will need to obtain a free API key from them for at `}
+                <br />
+                <br />
+                {`Once you have the key, put it in an environment variable named ${selectedProvider?.label}. Remember to restart the app or dev environment after setting the key.`}
+              </Typography>
+            </Box>
+          )}
+            */

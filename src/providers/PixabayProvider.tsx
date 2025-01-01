@@ -15,7 +15,7 @@ export class Pixabay implements IImageCollectionProvider {
   public label = "Pixabay";
   public id = "pixabay";
   public logo = logo;
-  public needsApiUrl?: string;
+  public isReady: boolean = false;
   private totalHits: number = 0;
 
   public async checkReadiness() {
@@ -88,16 +88,15 @@ export class Pixabay implements IImageCollectionProvider {
   private async fetchApiKey() {
     try {
       const response = await axios.get(
-        `http://localhost:${port}${basePathPrefix}/api-key/pixabay`
+        `http://localhost:${port}${basePathPrefix}/api-key/pixabayZ`
       );
       this.apiKey = response.data.key;
       // if we didn't get one
-      if (!this.apiKey) {
-        this.needsApiUrl = "https://pixabay.com/api/docs/";
+      if (this.apiKey) {
+        this.isReady = true; //"https://pixabay.com/api/docs/";
       }
     } catch (error) {
       console.error("Failed to fetch Pixabay API key:", error);
-      throw error;
     }
   }
 }
