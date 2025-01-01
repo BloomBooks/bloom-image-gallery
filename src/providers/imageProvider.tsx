@@ -1,5 +1,5 @@
-import { Alert } from "@mui/material";
-import React from "react";
+import { Alert, Typography } from "@mui/material";
+import React, { PropsWithChildren } from "react";
 
 export interface IImageCollectionProvider {
   local?: boolean;
@@ -50,27 +50,19 @@ export const StandardDisclaimer: React.FunctionComponent<{}> = () => {
   );
 };
 
-/*
-
-  {!selectedProvider?.isReady && (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                margin: "20px",
-              }}
-            >
-              <Typography variant="caption">
-                {`(This is a message for developers. For users, we'll either need a UI for pasting in or we'll provide the keys via our server.)`}
-                <br />
-                <br />
-                {`Before you can use ${selectedProvider?.label}, you will need to obtain a free API key from them for at `}
-                <br />
-                <br />
-                {`Once you have the key, put it in an environment variable named ${selectedProvider?.label}. Remember to restart the app or dev environment after setting the key.`}
-              </Typography>
-            </Box>
-          )}
-            */
+export const ProviderSummary = ({ children }: PropsWithChildren<{}>) => {
+  return (
+    <Typography
+      variant="body1"
+      sx={{
+        backgroundColor: "#f5f5f5",
+        padding: 2,
+        borderRadius: 1,
+        border: "1px solid #e0e0e0",
+        marginBottom: 2,
+      }}
+    >
+      {children}
+    </Typography>
+  );
+};

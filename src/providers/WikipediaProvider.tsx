@@ -3,6 +3,7 @@ import {
   IImage,
   IImageCollectionProvider,
   ISearchResult,
+  ProviderSummary,
   StandardDisclaimer,
 } from "./imageProvider";
 import logo from "./WikiCommons.png";
@@ -128,10 +129,10 @@ export class WikipediaProvider implements IImageCollectionProvider {
   public aboutComponent(): JSX.Element {
     return (
       <>
-        <Alert severity="info">
+        <ProviderSummary>
           Wikimedia Commons is a collection of media that is free to use. The
           OpenVerse search also includes results from Wikimedia Commons.
-        </Alert>
+        </ProviderSummary>
         <br />
         <StandardDisclaimer />
       </>

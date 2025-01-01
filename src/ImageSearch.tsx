@@ -21,7 +21,7 @@ export const ImageSearch: React.FunctionComponent<{
   lang: string;
   handleSelection: (item: IImage | undefined) => void;
 }> = (props) => {
-  const [searchTerm, setSearchTerm] = React.useState("sun");
+  const [searchTerm, setSearchTerm] = React.useState("soap bubbles");
   const [searchLanguage, setSearchLanguage] = React.useState(props.lang);
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);
@@ -115,6 +115,7 @@ export const ImageSearch: React.FunctionComponent<{
     <div
       css={css`
         flex-grow: 0;
+        min-width: 600px;
       `}
     >
       <div
@@ -126,69 +127,90 @@ export const ImageSearch: React.FunctionComponent<{
         `}
       >
         {props.provider.logo && (
-          <img
-            src={props.provider.logo}
-            alt={props.provider.label}
+          <div
             css={css`
-              height: 30px;
-              margin-right: 10px;
+              display: flex;
+              align-items: center;
             `}
-          />
-        )}
-        {props.provider.justAListNoQuery ? (
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => searchForImages()}
-            startIcon={<SearchIcon />}
           >
-            Refresh
-          </Button>
-        ) : (
-          <>
-            <TextField
-              id="outlined-basic"
-              label="Search"
-              variant="outlined"
-              size="small"
-              value={searchTerm}
-              onKeyDown={handleKeyDown}
-              onChange={handleChange}
-              sx={{ width: "150px" }}
-            ></TextField>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => searchForImages()}
-              startIcon={
-                <SearchIcon
-                  css={css`
-                    width: 30px;
-                    height: 30px;
-                  `}
-                />
-              }
+            <img
+              src={props.provider.logo}
+              alt={props.provider.label}
               css={css`
-                span {
-                  margin: 0;
-                }
-                margin-left: 5px;
+                height: 30px;
+                margin-right: 10px;
               `}
-            ></Button>
-            {searchResult?.totalImages !== undefined && (
+            />
+            {!props.provider.isReady && (
               <span
                 css={css`
-                  margin-left: 10px;
                   color: #666;
-                  font-size: 0.9em;
+                  font-style: italic;
                 `}
               >
-                {searchResult.totalImages.toLocaleString()} images
+                Not Ready
               </span>
+            )}
+          </div>
+        )}
+        {props.provider.isReady && (
+          <>
+            {props.provider.justAListNoQuery ? (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => searchForImages()}
+                startIcon={<SearchIcon />}
+              >
+                Refresh
+              </Button>
+            ) : (
+              <>
+                <TextField
+                  id="outlined-basic"
+                  label="Search"
+                  variant="outlined"
+                  size="small"
+                  value={searchTerm}
+                  onKeyDown={handleKeyDown}
+                  onChange={handleChange}
+                  sx={{ width: "150px" }}
+                ></TextField>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => searchForImages()}
+                  startIcon={
+                    <SearchIcon
+                      css={css`
+                        width: 30px;
+                        height: 30px;
+                      `}
+                    />
+                  }
+                  css={css`
+                    span {
+                      margin: 0;
+                    }
+                    margin-left: 5px;
+                  `}
+                ></Button>
+                {searchResult?.totalImages !== undefined && (
+                  <span
+                    css={css`
+                      margin-left: 10px;
+                      color: #666;
+                      font-size: 0.9em;
+                    `}
+                  >
+                    {searchResult.totalImages.toLocaleString()} images
+                  </span>
+                )}
+              </>
             )}
           </>
         )}
-        {props.provider.languages && (
+        {props.provider.isReady && props.provider.languages && (
           <Select
             value={searchLanguage}
             onChange={handleLanguageChange}
@@ -208,13 +230,15 @@ export const ImageSearch: React.FunctionComponent<{
       {(!searchResult || searchResult.images.length === 0) && (
         <About provider={props.provider} />
       )}
-      <SearchResults
-        images={searchResult?.images || []}
-        handleSelection={props.handleSelection}
-        isLoading={isLoading}
-        error={searchResult?.error}
-        onBottomReached={loadNextPage}
-      />
+      {searchResult && (
+        <SearchResults
+          images={searchResult?.images || []}
+          handleSelection={props.handleSelection}
+          isLoading={isLoading}
+          error={searchResult?.error}
+          onBottomReached={loadNextPage}
+        />
+      )}
     </div>
   );
 };

@@ -3,6 +3,7 @@ import {
   IImage,
   IImageCollectionProvider,
   ISearchResult,
+  ProviderSummary,
   StandardDisclaimer,
 } from "./imageProvider";
 import logo from "./openverse.png";
@@ -93,11 +94,11 @@ export class OpenVerse implements IImageCollectionProvider {
   public aboutComponent(): JSX.Element {
     return (
       <>
-        <Alert severity="info">
+        <ProviderSummary>
           Openverse searches multiple public repositories for CC-licensed and
           public domain works.{" "}
           <a href="https://openverse.org/about">More info</a>
-        </Alert>
+        </ProviderSummary>
         <br />
         <StandardDisclaimer />
       </>

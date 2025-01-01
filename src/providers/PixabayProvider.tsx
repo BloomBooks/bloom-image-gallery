@@ -5,9 +5,10 @@ import {
   IImage,
   IImageCollectionProvider,
   ISearchResult,
+  ProviderSummary,
   StandardDisclaimer,
 } from "./imageProvider";
-import { Alert } from "@mui/material";
+import { Alert, Typography } from "@mui/material";
 import React from "react";
 
 export class Pixabay implements IImageCollectionProvider {
@@ -75,12 +76,43 @@ export class Pixabay implements IImageCollectionProvider {
   public aboutComponent(): JSX.Element {
     return (
       <>
-        <Alert severity="info">
+        <ProviderSummary>
           Pixabay is a large collection of images that may be used for free
           without attribution.
-        </Alert>
+        </ProviderSummary>
         <br />
-        <StandardDisclaimer />
+        {this.apiKey ? (
+          <StandardDisclaimer />
+        ) : (
+          <>
+            <Alert severity="info">
+              Searching Pixabay from here requires some technical set up:
+              <ol>
+                <li>Create a Pixabay account and log in</li>
+                <li>
+                  Go to{" "}
+                  <a
+                    href="https://pixabay.com/api/docs/"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    this page
+                  </a>
+                </li>
+                <li>Copy the API key shown next to "Your API key:"</li>
+                <li>
+                  Create a "pixabay" environment variable on your computer with
+                  the API key
+                </li>
+              </ol>
+            </Alert>
+            <br />
+            <Alert severity="success">
+              Alternatively, you use the Browser Queue source in order to use
+              Pixabay.com directly in your browser.
+            </Alert>
+          </>
+        )}
       </>
     );
   }
@@ -88,7 +120,7 @@ export class Pixabay implements IImageCollectionProvider {
   private async fetchApiKey() {
     try {
       const response = await axios.get(
-        `http://localhost:${port}${basePathPrefix}/api-key/pixabayZ`
+        `http://localhost:${port}${basePathPrefix}/api-key/pixabay`
       );
       this.apiKey = response.data.key;
       // if we didn't get one

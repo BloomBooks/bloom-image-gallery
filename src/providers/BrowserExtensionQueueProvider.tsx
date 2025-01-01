@@ -5,6 +5,7 @@ import {
   IImageCollectionProvider,
   ISearchResult,
   IImage,
+  ProviderSummary,
 } from "./imageProvider";
 import logo from "./chrome.png";
 import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
@@ -20,13 +21,13 @@ export class BrowserExtensionQueueProvider implements IImageCollectionProvider {
 
   aboutComponent(): JSX.Element {
     return (
-      <Alert severity="info">
+      <ProviderSummary>
         This area shows images saved by the Bloom Helper browser extension. When
         the extension is active, it keeps track of the images you download from
         websites (like Pixabay). It also saves important details, like the
         creator’s name and the license information. When you’re ready to add
         images to your book, come back here to find and use them.
-      </Alert>
+      </ProviderSummary>
     );
   }
 
