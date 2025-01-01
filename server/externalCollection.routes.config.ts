@@ -12,10 +12,7 @@ export class ExternalApiKeyRoutes extends CommonRoutesConfig {
       .get((req: express.Request, res: express.Response) => {
         const service = req.params.service;
         console.log(`API key requested for: ${service}`);
-        const apiKey =
-          process.env[`ImageToolbox_${service}`] || // in case you want one specific to this app
-          process.env[`${service}`] ||
-          "";
+        const apiKey = process.env[`${service}`];
         if (!apiKey) {
           console.error(`API key not found for: ${service}`);
           return res

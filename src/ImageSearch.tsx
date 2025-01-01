@@ -230,7 +230,7 @@ export const ImageSearch: React.FunctionComponent<{
       {(!searchResult || searchResult.images.length === 0) && (
         <About provider={props.provider} />
       )}
-      {searchResult && (
+      {searchResult?.images && searchResult.images.length > 0 && (
         <SearchResults
           images={searchResult?.images || []}
           handleSelection={props.handleSelection}
@@ -249,7 +249,7 @@ const About: React.FunctionComponent<{ provider: IImageCollectionProvider }> = (
   return (
     <div
       css={css`
-        margin: 20px 0;
+        margin: 20px 0 20px 0;
         max-width: 500px;
       `}
     >
