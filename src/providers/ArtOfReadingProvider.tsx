@@ -9,6 +9,7 @@ import {
 import logo from "./aor.png"; // at this point if we had collections other than Art of Reading, they will all get this same logo
 import React from "react";
 import { basePathPrefix, port } from "../../common/locations";
+import { Alert } from "@mui/material";
 
 export class ArtOfReadingProvider implements IImageCollectionProvider {
   public label = "Art of Reading";
@@ -49,7 +50,7 @@ export class ArtOfReadingProvider implements IImageCollectionProvider {
             reasonableSizeUrl: url,
             size: 0,
             type: "PNG",
-            license: "CC-BY", // TODO? which is it?
+            license: "CC-BY-SA",
             raw: {},
           }) as IImage
       ),
@@ -59,7 +60,33 @@ export class ArtOfReadingProvider implements IImageCollectionProvider {
   public aboutComponent(): JSX.Element {
     return (
       <>
-        <ProviderSummary>Something about art of reading</ProviderSummary>
+        <ProviderSummary>
+          International Illustrations: Art of Reading 3.0 is a collection of
+          over 11,000 images. The collection is designed for use in the
+          preparation of a wide variety of literacy and educational materials,
+          such as shellbooks, primers, news-sheets, posters, and other
+          culturally appropriate materials. These images are black and white
+          line drawings collected from SIL and national artists from around the
+          world.
+        </ProviderSummary>
+        {!this.isReady && (
+          <Alert severity="info">
+            To get Art of Reading images, you need to:
+            <ol>
+              <li>
+                Download and install the{" "}
+                <a
+                  href="https://bloomlibrary.org/page/resources/art-of-reading"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Art of Reading Installer
+                </a>
+              </li>
+              <li>Quit and re-run Bloom</li>
+            </ol>
+          </Alert>
+        )}
       </>
     );
   }
