@@ -22,7 +22,7 @@ export interface ISearchResult {
 export interface IImage {
   thumbnailUrl: string;
   reasonableSizeUrl?: string;
-  webSiteUrl?: string;
+  sourceWebPage?: string;
   size: number;
   type: string;
   width?: number;

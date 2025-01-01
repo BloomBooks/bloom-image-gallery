@@ -71,7 +71,7 @@ export class Europeana implements IImageCollectionProvider {
               ({
                 thumbnailUrl: item.edmPreview,
                 reasonableSizeUrl: item.edmIsShownBy,
-                webSiteUrl: item.edmIsShownAt,
+                sourceWebPage: item.edmIsShownAt,
                 size: 0,
                 type: "image/*",
                 creator: item.dcCreator ? item.dcCreator[0] : undefined,

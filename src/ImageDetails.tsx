@@ -114,14 +114,14 @@ export const ImageDetails: React.FunctionComponent<{
               )}
             </>
           )}
-          {props.image.webSiteUrl && (
+          {props.image.sourceWebPage && (
             <>
               <br />
               <a
-                href={props.image.webSiteUrl}
+                href={props.image.sourceWebPage}
                 target="_blank"
                 rel="noreferrer"
-                title={props.image.webSiteUrl}
+                title={props.image.sourceWebPage}
               >
                 Source
               </a>

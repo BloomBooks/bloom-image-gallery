@@ -55,7 +55,7 @@ export class Pixabay implements IImageCollectionProvider {
             thumbnailUrl: hit.previewURL,
             // review: we have at least 3 premade sizes and can get a custom size too
             reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
-            webSiteUrl: hit.pageURL,
+            sourceWebPage: hit.pageURL,
             size: 0,
             type: "?",
             width: hit.webformatWidth,
