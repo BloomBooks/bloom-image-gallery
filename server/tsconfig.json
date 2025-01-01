@@ -12,7 +12,8 @@
     "noUnusedParameters": false,
   },
   "include": [
-    "./**/*.ts"
+    "./**/*.ts",
+    "../common/**/*.ts"
   ],
   "exclude": [
     "../node_modules/@types/storybook__react", // enhance: storybook is currently out of date

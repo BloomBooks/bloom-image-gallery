@@ -1,15 +1,15 @@
-import { CommonRoutesConfig } from "../common/common.routes.config.js";
+import { CommonRoutesConfig } from "./common.routes.config.js";
 import express from "express";
 import fs from "fs";
 import path from "path";
-import { spawn } from "child_process";
+import { basePathPrefix } from "../common/locations.js";
 
 // This class implements an API for accessing the file system looking for pictures.
 // Two types are search are provided: browsing an image collection like Art of Reading
 // or using a file browser to randomly find an image file.
-export class ImageToolboxRoutes extends CommonRoutesConfig {
-  constructor(app: express.Application) {
-    super(app, "ImageToolboxRoutes");
+export class LocalCollectionRoutes extends CommonRoutesConfig {
+  constructor(app: express.Router) {
+    super(app, "LocalCollectionRoutes");
   }
 
   // This is the base location for storing image collections.
@@ -20,7 +20,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
 
   configureRoutes() {
     this.app
-      .route(`/image-toolbox/collections`)
+      .route(`/local-collections/collections`)
       .get((req: express.Request, res: express.Response) => {
         fs.readdir(this.baseFolder, (err, entries) => {
           if (err) {
@@ -41,63 +41,53 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         });
       });
     this.app
-      .route("/image-toolbox/search/:collection/:lang/:term")
+      .route("/local-collections/search/:collection/:lang/:term")
       .get((req: express.Request, res: express.Response) => {
+        const decodedCollection = decodeURIComponent(req.params.collection);
+        const decodedTerm = decodeURIComponent(req.params.term);
         const files =
           this.indexes
-            .get(req.params.collection)
+            .get(decodedCollection)
             ?.get(req.params.lang)
-            ?.get(req.params.term) || [];
-        res.status(200).send(files);
+            ?.get(decodedTerm) || [];
+        const paths = files.map(
+          (file) =>
+            `${req.protocol}://${req.get("host")}${basePathPrefix}/local-collections/collection-image-file/${encodeURIComponent(decodedCollection)}/${file}`
+        );
+        res.status(200).send(paths);
       });
     this.app
-      .route("/image-toolbox/collection-image-file/:collection/:file")
+      .route("/local-collections/collection-image-file/:collection/:file")
       .get((req: express.Request, res: express.Response) => {
-        const filepath = `${this.baseFolder}\\${req.params.collection}\\images\\${req.params.file}`;
+        console.log(
+          `****** collection: ${req.params.collection}, file: ${req.params.file}`
+        );
+        const decodedCollection = decodeURIComponent(req.params.collection);
+        const decodedFile = decodeURIComponent(req.params.file)
+          .replace(/%2f/g, path.sep)
+          .replace(/\//g, path.sep);
+        const filepath = path.join(
+          this.baseFolder,
+          decodedCollection,
+          "images",
+          decodedFile
+        );
         this.returnImageFileContent(filepath, res);
       });
     this.app
-      .route("/image-toolbox/collection-image-properties/:collection/:file")
+      .route("/local-collections/collection-image-properties/:collection/:file")
       .get((req: express.Request, res: express.Response) => {
         const filepath = `${this.baseFolder}\\${req.params.collection}\\images\\${req.params.file}`;
         this.returnImageProperties(filepath, res);
       });
     this.app
-      .route("/image-toolbox/file-dialog")
-      .get((req: express.Request, res: express.Response) => {
-        // This hack is extremely Windows-centric.  But for our purposes at the moment, it will have to do.
-        // See https://stackoverflow.com/questions/51655571/how-to-open-a-select-folder-dialog-from-nodejs-server-side-not-browser
-        // and https://4sysops.com/archives/how-to-create-an-open-file-folder-dialog-box-with-powershell/
-        const psScript = `Add-Type -AssemblyName System.Windows.Forms
-                $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{ 
-                    InitialDirectory = [Environment]::GetFolderPath('MyPictures') 
-                    Filter = 'Image Files(*.png;*.bmp;*.jpg;*.gif)|*.png;*.bmp;*.jpg;*.jpeg;*.gif|All files (*.*)|*.*'
-                }
-                $null = $FileBrowser.ShowDialog()
-                $FileBrowser.FileName
-                `;
-        let filepath: string = "";
-        const child = spawn("powershell.exe", [psScript]);
-        child.stdout.on("data", function (data: string) {
-          filepath = data;
-        });
-        child.stderr.on("data", function (data: string) {
-          //this script block will get the output of the PS script
-          console.log("Powershell Errors: " + data);
-        });
-        child.on("exit", function () {
-          res.status(200).type("text/plain").send(filepath);
-        });
-        child.stdin.end(); //end input
-      });
-    this.app
-      .route("/image-toolbox/image-file/:filepath")
+      .route("/local-collections/image-file/:filepath")
       .get((req: express.Request, res: express.Response) => {
         const filepath: string = `${req.params.filepath}`;
         this.returnImageFileContent(filepath, res);
       });
     this.app
-      .route("/image-toolbox/image-properties/:filepath")
+      .route("/local-collections/image-properties/:filepath")
       .get((req: express.Request, res: express.Response) => {
         const filepath: string = `${req.params.filepath}`;
         this.returnImageProperties(filepath, res);
@@ -107,7 +97,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
 
   private returnImageFileContent(
     filepath: string,
-    res: express.Response<any, Record<string, any>>,
+    res: express.Response<any, Record<string, any>>
   ) {
     fs.readFile(filepath, (err, data) => {
       if (err) {
@@ -121,7 +111,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
 
   private returnImageProperties(
     filepath: string,
-    res: express.Response<any, Record<string, any>>,
+    res: express.Response<any, Record<string, any>>
   ): void {
     try {
       const stats = fs.statSync(filepath);
@@ -172,7 +162,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         entry,
         basepath,
         subfolder,
-        filename,
+        filename
       );
     }
     this.indexes.set(collection, collectionMap);
@@ -185,7 +175,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
     entry: string[],
     basepath: string,
     subfolder: string,
-    filename: string,
+    filename: string
   ): boolean {
     const subpath = `${subfolder}\\${filename}`;
     const filepath = `${basepath}\\${subpath}`;
@@ -196,7 +186,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
         entry,
         indexSpanish,
         collectionMap,
-        subpath.replace(/\\/g, "%2f"),
+        subpath.replace(/\\/g, "%2f")
       );
       return true;
     } catch (err) {
@@ -215,7 +205,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
                 entry,
                 basepath,
                 subsubfolder,
-                filename,
+                filename
               )
             )
               return true;
@@ -233,7 +223,7 @@ export class ImageToolboxRoutes extends CommonRoutesConfig {
     entry: string[],
     indexSpanish: number,
     collectionIndex: Map<string, Map<string, string[]>>,
-    subpath: string,
+    subpath: string
   ) {
     const englishTags =
       indexEnglish >= 0 && indexEnglish < entry.length

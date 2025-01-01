@@ -1,5 +1,4 @@
 /// <reference types="@types/wicg-file-system-access" />
-// import "./App.css";
 import { css } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -17,66 +16,90 @@ import {
   ListItemText,
   Divider,
   ListItemButton,
-  Checkbox,
+  Button,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import FolderIcon from "@mui/icons-material/Folder";
-import CropIcon from "@mui/icons-material/Crop";
-import AttributionIcon from "@mui/icons-material/Attribution";
-import { ImageScreen } from "./ImageScreen";
+import { ImageDetails } from "./ImageDetails";
+import { ImageSearch } from "./ImageSearch";
+import { useLocalCollections } from "./providers/LocalCollectionProvider";
+import { Pixabay } from "./providers/PixabayProvider";
+import { OpenVerse } from "./providers/OpenVerseProvider";
+import { Europeana } from "./providers/EuropeanaProvider";
+import { WikipediaProvider } from "./providers/WikipediaProvider";
+import { BrowserExtensionQueueProvider } from "./providers/BrowserExtensionQueueProvider";
+import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
+import { ArtOfReadingProvider } from "./providers/ArtOfReadingProvider";
+
 const mdTheme = createTheme();
 const drawerWidth = 200;
 
 function App() {
-  const [imageCollections, setImageCollections] = useState([] as string[]);
-  const [checkedCollection, setCheckedCollection] = useState("");
-  const [chosenFileUrl, setChosenFileUrl] = useState<string | undefined>(
+  const [imageProviders, setImageProviders] = useState<
+    IImageCollectionProvider[]
+  >([]);
+
+  const addToImageProviders = (provider: IImageCollectionProvider) => {
+    setImageProviders((prev) => {
+      if (!prev.find((p) => p.id === provider.id)) {
+        return [...prev, provider];
+      }
+      return prev;
+    });
+  };
+
+  // Initialize built-in providers
+  useEffect(() => {
+    const initProviders = async () => {
+      addToImageProviders(new OpenVerse());
+      addToImageProviders(new WikipediaProvider());
+      addToImageProviders(await new ArtOfReadingProvider().checkReadiness());
+      addToImageProviders(new BrowserExtensionQueueProvider());
+      addToImageProviders(await new Pixabay().checkReadiness());
+      addToImageProviders(await new Europeana().checkReadiness());
+    };
+    initProviders();
+  }, []); // Only run once on mount
+
+  // Handle local collections separately
+  //useLocalCollections(addToImageProviders);
+
+  const [selectedProvider, setSelectedProvider] = useState<
+    IImageCollectionProvider | undefined
+  >(undefined);
+
+  const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
     undefined
   );
-  const [languages, setLanguages] = useState([] as string[]);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/image-toolbox/collections")
-      .then((response) => {
-        setImageCollections(response.data.collections);
-        if (response.data.collections.length > 0) {
-          setCheckedCollection(response.data.collections[0]);
-        }
-        setLanguages(response.data.languages);
-      })
-      .catch((reason) => {
-        console.log(`axios call image-toolbox/collections failed: ${reason}`);
-        setImageCollections([]);
-      });
-  }, []);
+    // select an initial collection. Note that if selectedProvider is null, then that means we don't want a selection
+    if (selectedProvider === undefined && imageProviders.length > 0) {
+      setSelectedProvider(imageProviders[0]);
+    }
+  }, [imageProviders]);
 
-  function handleToggleCollection(value: string) {
-    return () => {
-      setCheckedCollection(value);
-      setChosenFileUrl(undefined);
-    };
+  function handleSelectCollection(provider: IImageCollectionProvider) {
+    setSelectedProvider(provider);
   }
+
+  const sidebarHeadingStyle = css`
+    margin-top: 20px;
+    padding-bottom: 0;
+    span {
+      color: #555;
+      font-size: 14px;
+    }
+  `;
 
   return (
     <ThemeProvider theme={mdTheme}>
       <Box
         css={css`
-          //height: 100%;
+          height: 100vh;
           display: flex;
         `}
       >
-        <CssBaseline />
-        <AppBar
-          position="fixed"
-          sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        >
-          <Toolbar>
-            <Typography variant="h6" noWrap component="div">
-              Image Toolbox
-            </Typography>
-          </Toolbar>
-        </AppBar>
         <Drawer
           variant="permanent"
           sx={{
@@ -85,15 +108,28 @@ function App() {
             [`& .MuiDrawer-paper`]: {
               width: drawerWidth,
               boxSizing: "border-box",
+              height: "100%",
             },
           }}
         >
-          {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
-          <Toolbar />
-          <Box sx={{ overflow: "auto" }}>
+          <Box
+            sx={{
+              overflow: "auto",
+              height: "100%",
+            }}
+            onClick={(e) => {
+              // Only clear if clicking directly on the Box, not its children
+              if (e.target === e.currentTarget) {
+                setSelectedProvider(undefined);
+              }
+            }}
+          >
             <List>
-              <ListItem disablePadding>
-                <ListItemButton
+              <ListItem>
+                {/* a Material UI contained button with a folder icon */}
+                <Button
+                  variant={selectedProvider ? "outlined" : "contained"}
+                  startIcon={<FolderIcon />}
                   onClick={async () => {
                     try {
                       const [fileHandle] = await window.showOpenFilePicker({
@@ -109,54 +145,96 @@ function App() {
                           },
                         ],
                       });
-                      // set div to a png of the file
                       const file = await fileHandle.getFile();
                       const url = URL.createObjectURL(file);
-                      setChosenFileUrl(url);
+                      setSelectedImage({
+                        thumbnailUrl: url,
+                        size: file.size,
+                        type: file.type,
+                      });
                     } catch (error) {
                       console.error(error);
                     }
                   }}
                 >
-                  <ListItemIcon>
-                    <FolderIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={"Open File..."} />
-                </ListItemButton>
+                  Open File...
+                </Button>
               </ListItem>
-              {imageCollections.map((item) => (
-                <ListItemButton
-                  key={item}
-                  role={undefined}
-                  onClick={handleToggleCollection(item)}
-                  dense
-                >
-                  <ListItemIcon>
-                    <Checkbox
-                      edge="start"
-                      checked={item === checkedCollection}
-                      tabIndex={-1}
-                      disableRipple
-                    />
-                  </ListItemIcon>
-                  <ListItemText primary={item} />
-                </ListItemButton>
-              ))}
-            </List>
-            <Divider />
-            <List>
+
               <ListItem>
-                <ListItemIcon>
-                  <AttributionIcon />
-                </ListItemIcon>
-                <ListItemText primary={"Give Credit"} />
+                <ListItemText
+                  primary="Online Sources"
+                  css={sidebarHeadingStyle}
+                />
               </ListItem>
-              <ListItem>
-                <ListItemIcon>
-                  <CropIcon />
-                </ListItemIcon>
-                <ListItemText primary={"Adjust"} />
+              {imageProviders
+                ?.filter((p) => !p.local)
+                .map((provider) => (
+                  <ListItemButton
+                    key={provider.id}
+                    onClick={() => handleSelectCollection(provider)}
+                    selected={provider === selectedProvider}
+                    dense
+                    sx={{
+                      position: "relative",
+                      "&::after": !provider.isReady
+                        ? {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "#ffffff80",
+                            pointerEvents: "none",
+                          }
+                        : {},
+                    }}
+                  >
+                    {provider.logo && (
+                      <ListItemIcon>
+                        <img src={provider.logo} width={24} />
+                      </ListItemIcon>
+                    )}
+                    <ListItemText primary={provider.label}></ListItemText>
+                  </ListItemButton>
+                ))}
+
+              <ListItem css={sidebarHeadingStyle}>
+                <ListItemText primary="Collections on this Computer" />
               </ListItem>
+              {imageProviders
+                ?.filter((p) => p.local)
+                .map((provider) => (
+                  <ListItemButton
+                    key={provider.id}
+                    onClick={() => handleSelectCollection(provider)}
+                    selected={provider === selectedProvider}
+                    dense
+                    sx={{
+                      position: "relative",
+                      // Add a semi-transparent overlay to show that it's not ready
+                      "&::after": !provider.isReady
+                        ? {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "#ffffff80",
+                          }
+                        : {},
+                    }}
+                  >
+                    {provider.logo && (
+                      <ListItemIcon>
+                        <img src={provider.logo} width={24} />
+                      </ListItemIcon>
+                    )}
+                    <ListItemText primary={provider.label}></ListItemText>
+                  </ListItemButton>
+                ))}
             </List>
           </Box>
         </Drawer>
@@ -169,13 +247,25 @@ function App() {
             width: 100%;
           `}
         >
-          {/* this toolbar seems to just push us down below the app bar? what a hack. But it's from the mui sample code. */}
-          <Toolbar />
-          <ImageScreen
-            collection={checkedCollection}
-            lang={"en"}
-            chosenFileUrl={chosenFileUrl}
-          />
+          {selectedProvider && (
+            <div
+              css={css`
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                height: calc(100vh - 84px);
+                padding: 20px;
+              `}
+            >
+              <ImageSearch
+                provider={selectedProvider}
+                lang={"en"}
+                handleSelection={setSelectedImage}
+              />
+              <Divider orientation="vertical" flexItem />
+              <ImageDetails image={selectedImage} />
+            </div>
+          )}
         </Box>
       </Box>
     </ThemeProvider>
