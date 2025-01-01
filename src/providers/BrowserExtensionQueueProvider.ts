@@ -5,7 +5,8 @@ import {
   IImage,
 } from "./imageProvider";
 import logo from "./chrome.png";
-import { BloomMediaMetadata } from "../bloomMediaMetadata";
+import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
+import { basePathPrefix, port } from "../../common/locations";
 
 export class BrowserExtensionQueueProvider implements IImageCollectionProvider {
   label = "Browser Queue";
@@ -20,7 +21,9 @@ export class BrowserExtensionQueueProvider implements IImageCollectionProvider {
     language: string
   ): Promise<ISearchResult> {
     try {
-      const response = await axios.get("http://localhost:5000/getDownloads");
+      const response = await axios.get(
+        `http://localhost:${port}${basePathPrefix}/getDownloads`
+      );
       console.log(
         "BloomChromeExtensionProvider search response",
         response.data

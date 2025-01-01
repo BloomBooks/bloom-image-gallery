@@ -1,5 +1,6 @@
 import axios from "axios";
 import logo from "./pixabay.png";
+import { basePathPrefix, port } from "../../common/locations";
 import {
   IImage,
   IImageCollectionProvider,
@@ -71,7 +72,7 @@ export class Pixabay implements IImageCollectionProvider {
   private async fetchApiKey() {
     try {
       const response = await axios.get(
-        "http://localhost:5000/image-toolbox/api-key/pixabay"
+        `http://localhost:${port}${basePathPrefix}/api-key/pixabay`
       );
       this.apiKey = response.data.key;
       // if we didn't get one

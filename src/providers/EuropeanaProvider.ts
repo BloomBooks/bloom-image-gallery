@@ -5,6 +5,7 @@ import {
   ISearchResult,
 } from "./imageProvider";
 import logo from "./europeana.png";
+import { basePathPrefix, port } from "../../common/locations";
 
 export class Europeana implements IImageCollectionProvider {
   private apiKey: string | undefined;
@@ -93,7 +94,7 @@ export class Europeana implements IImageCollectionProvider {
     if (!this.apiKey) {
       try {
         const response = await axios.get(
-          "http://localhost:5000/image-toolbox/api-key/europeana"
+          `http://localhost:${port}${basePathPrefix}/api-key/europeana`
         );
         this.apiKey = response.data.key;
         // if we didn't get one

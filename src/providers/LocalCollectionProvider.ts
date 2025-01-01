@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useEffect } from "react";
+import { port, basePathPrefix } from "../../common/locations";
 import {
   IImageCollectionProvider,
   ISearchResult,
@@ -12,7 +13,9 @@ export function useLocalCollections(
 ) {
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/image-toolbox/local-collections/collections`)
+      .get(
+        `http://localhost:${port}${basePathPrefix}/local-collections/collections`
+      )
       .then((response) => {
         response.data.collections.forEach((name) => {
           add({
@@ -43,7 +46,7 @@ async function search(
   language: string
 ): Promise<ISearchResult> {
   const response = await axios.get(
-    `http://localhost:5000/image-toolbox/local-collections/search/${collection.replaceAll(
+    `http://localhost:${port}${basePathPrefix}/local-collections/search/${collection.replaceAll(
       " ",
       "%20"
     )}/${language}/${searchTerm.replaceAll(" ", "%20")}`

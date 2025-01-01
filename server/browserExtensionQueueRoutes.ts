@@ -1,6 +1,6 @@
 import { CommonRoutesConfig } from "./common.routes.config.js";
 import express from "express";
-import { BloomMediaMetadata } from "../src/bloomMediaMetadata.js"; // actually the type here in the server doesn't matter?
+import { BloomMediaMetadata } from "../common/bloomMediaMetadata.js"; // actually the type here in the server doesn't matter?
 
 const queuedDownloads: BloomMediaMetadata[] = [];
 
