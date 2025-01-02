@@ -1,6 +1,5 @@
 import axios from "axios";
 import logo from "./pixabay.png";
-import { basePathPrefix, port } from "../../common/locations";
 import {
   IImage,
   IImageCollectionProvider,
@@ -8,20 +7,19 @@ import {
   ProviderSummary,
   StandardDisclaimer,
 } from "./imageProvider";
-import { Alert, Typography } from "@mui/material";
-import React from "react";
+import { Alert, Button, TextField, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { useLocalStorageString } from "./useLocalStorageString";
 
 export class Pixabay implements IImageCollectionProvider {
-  private apiKey: string | undefined;
   public label = "Pixabay";
   public id = "pixabay";
   public logo = logo;
-  public isReady: boolean = false;
   private totalHits: number = 0;
+  onReadyStateChange?: () => void;
 
-  public async checkReadiness() {
-    await this.fetchApiKey();
-    return this;
+  get isReady(): boolean {
+    return !!localStorage.getItem("pixabayApiKey");
   }
 
   public async search(
@@ -29,7 +27,8 @@ export class Pixabay implements IImageCollectionProvider {
     pageZeroIndexed: number,
     language: string
   ): Promise<ISearchResult> {
-    if (!this.apiKey) {
+    const key = localStorage.getItem("pixabayApiKey");
+    if (!key) {
       return {
         images: [],
         error: "Could not get a Pixabay API key",
@@ -45,7 +44,7 @@ export class Pixabay implements IImageCollectionProvider {
     const term = encodeURIComponent(searchTerm);
     const imageType = "illustration";
     const response = await axios.get<PixabayResponse>(
-      `https://pixabay.com/api/?key=${this.apiKey}&safesearch=true&q=${term}` +
+      `https://pixabay.com/api/?key=${key}&safesearch=true&q=${term}` +
         `&page=${pageZeroIndexed + 1}&per_page=${perPage}` +
         `&image_type=${imageType}`
     );
@@ -74,6 +73,11 @@ export class Pixabay implements IImageCollectionProvider {
   }
 
   public aboutComponent(): JSX.Element {
+    const [apiKey, setApiKey] = useLocalStorageString("pixabayApiKey");
+    const [keyInTextField, setKeyInTextField] = useState(
+      localStorage.getItem("pixabayApiKey") || ""
+    );
+
     return (
       <>
         <ProviderSummary>
@@ -81,12 +85,10 @@ export class Pixabay implements IImageCollectionProvider {
           without attribution.
         </ProviderSummary>
         <br />
-        {this.apiKey ? (
-          <StandardDisclaimer />
-        ) : (
+        {!apiKey && (
           <>
             <Alert severity="info">
-              Searching Pixabay from here requires some technical set up:
+              To use Pixabay, you need an API key:
               <ol>
                 <li>Create a Pixabay account and log in</li>
                 <li>
@@ -99,37 +101,51 @@ export class Pixabay implements IImageCollectionProvider {
                     this page
                   </a>
                 </li>
-                <li>Copy the API key shown next to "Your API key:"</li>
                 <li>
-                  Create a "pixabay" environment variable on your computer with
-                  the API key
+                  Copy the API key shown next to &quot;Your API key:&quot;
                 </li>
+                <li>Paste it below</li>
               </ol>
             </Alert>
             <br />
-            <Alert severity="success">
-              Alternatively, you use the Browser Queue source in order to use
-              Pixabay.com directly in your browser.
-            </Alert>
           </>
         )}
+        <StandardDisclaimer />
+        <br />
+        <div style={{ display: "flex", gap: "8px" }}>
+          <TextField
+            label="Pixabay API Key"
+            value={keyInTextField}
+            onChange={(e) => setKeyInTextField(e.target.value)}
+            onBlur={() => {
+              const trimmedKey = keyInTextField.trim();
+              if (trimmedKey) {
+                setApiKey(trimmedKey);
+              } else {
+                setApiKey("");
+              }
+              setKeyInTextField(trimmedKey);
+              this.onReadyStateChange?.();
+            }}
+            fullWidth
+            margin="normal"
+          />
+          <Button
+            variant="contained"
+            sx={{ marginTop: "16px" }}
+            onClick={async () => {
+              const text = await navigator.clipboard.readText();
+              console.log("Pasting", text);
+              setKeyInTextField(text);
+              setApiKey(text);
+              this.onReadyStateChange?.();
+            }}
+          >
+            Paste
+          </Button>
+        </div>
       </>
     );
-  }
-
-  private async fetchApiKey() {
-    try {
-      const response = await axios.get(
-        `http://localhost:${port}${basePathPrefix}/api-key/pixabay`
-      );
-      this.apiKey = response.data.key;
-      // if we didn't get one
-      if (this.apiKey) {
-        this.isReady = true; //"https://pixabay.com/api/docs/";
-      }
-    } catch (error) {
-      console.error("Failed to fetch Pixabay API key:", error);
-    }
   }
 }
 

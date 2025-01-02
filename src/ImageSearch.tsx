@@ -249,7 +249,7 @@ const About: React.FunctionComponent<{ provider: IImageCollectionProvider }> = (
   return (
     <div
       css={css`
-        margin: 20px 0 20px 0;
+        margin: 100px 0 20px 0;
         max-width: 500px;
       `}
     >

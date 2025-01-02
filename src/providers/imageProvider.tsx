@@ -16,6 +16,7 @@ export interface IImageCollectionProvider {
   ): Promise<ISearchResult>;
   checkReadiness?(): Promise<IImageCollectionProvider>;
   aboutComponent?(): JSX.Element;
+  onReadyStateChange?: () => void;
 }
 
 export interface ISearchResult {
@@ -42,7 +43,7 @@ export interface IImage {
 
 export const StandardDisclaimer: React.FunctionComponent<{}> = () => {
   return (
-    <Alert severity="warning">
+    <Alert severity="info">
       These images are not from Bloom or SIL. This tool requests images suitable
       for general audiences. However, we cannot guarantee that all images will
       be inoffensive.
@@ -55,7 +56,7 @@ export const ProviderSummary = ({ children }: PropsWithChildren<{}>) => {
     <Typography
       variant="body1"
       sx={{
-        backgroundColor: "#f5f5f5",
+        backgroundColor: "#d1e5ff",
         padding: 2,
         borderRadius: 1,
         border: "1px solid #e0e0e0",

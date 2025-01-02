@@ -102,8 +102,7 @@ export class Europeana implements IImageCollectionProvider {
           this.isReady = true; //"https://pro.europeana.eu/page/get-api";
         }
       } catch (error) {
-        console.error("Failed to fetch Europeana API key:", error);
-        throw error;
+        // console already shows the error
       }
     }
   }

@@ -22,7 +22,6 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import FolderIcon from "@mui/icons-material/Folder";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
-import { useLocalCollections } from "./providers/LocalCollectionProvider";
 import { Pixabay } from "./providers/PixabayProvider";
 import { OpenVerse } from "./providers/OpenVerseProvider";
 import { Europeana } from "./providers/EuropeanaProvider";
@@ -35,6 +34,7 @@ const mdTheme = createTheme();
 const drawerWidth = 200;
 
 function App() {
+  const [providerVersion, setProviderVersion] = useState(0);
   const [imageProviders, setImageProviders] = useState<
     IImageCollectionProvider[]
   >([]);
@@ -51,18 +51,18 @@ function App() {
   // Initialize built-in providers
   useEffect(() => {
     const initProviders = async () => {
+      const forceUpdate = () => setProviderVersion((v) => v + 1);
+      const pixabay = new Pixabay();
+      pixabay.onReadyStateChange = forceUpdate;
       addToImageProviders(new OpenVerse());
       addToImageProviders(new WikipediaProvider());
       addToImageProviders(await new ArtOfReadingProvider().checkReadiness());
       addToImageProviders(new BrowserExtensionQueueProvider());
-      addToImageProviders(await new Pixabay().checkReadiness());
+      addToImageProviders(pixabay);
       addToImageProviders(await new Europeana().checkReadiness());
     };
     initProviders();
   }, []); // Only run once on mount
-
-  // Handle local collections separately
-  //useLocalCollections(addToImageProviders);
 
   const [selectedProvider, setSelectedProvider] = useState<
     IImageCollectionProvider | undefined
@@ -258,6 +258,7 @@ function App() {
               `}
             >
               <ImageSearch
+                key={`${selectedProvider?.id}-${providerVersion}`}
                 provider={selectedProvider}
                 lang={"en"}
                 handleSelection={setSelectedImage}
