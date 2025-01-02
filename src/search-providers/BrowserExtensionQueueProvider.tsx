@@ -2,7 +2,7 @@ import axios from "axios";
 import React from "react";
 import { Alert } from "@mui/material";
 import {
-  IImageCollectionProvider,
+  ISearchProvider,
   ISearchResult,
   IImage,
   ProviderSummary,
@@ -11,7 +11,7 @@ import logo from "./chrome.png";
 import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
 import { basePathPrefix, port } from "../../common/locations";
 
-export class BrowserExtensionQueueProvider implements IImageCollectionProvider {
+export class BrowserExtensionQueueProvider implements ISearchProvider {
   readonly label = "Browser Queue";
   readonly id = "browser-queue";
   readonly local = false;

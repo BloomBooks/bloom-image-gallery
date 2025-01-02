@@ -9,12 +9,12 @@ import {
 import React from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import {
-  IImageCollectionProvider,
+  ISearchProvider,
   ISearchResult,
-} from "./providers/imageProvider";
+} from "./search-providers/imageProvider";
 
 export const SearchBar: React.FunctionComponent<{
-  provider: IImageCollectionProvider;
+  provider: ISearchProvider;
   initialLanguage: string;
   onSearch: (searchTerm: string, language: string) => void;
 }> = (props) => {

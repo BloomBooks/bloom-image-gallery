@@ -1,7 +1,7 @@
 import axios from "axios";
 import {
   IImage,
-  IImageCollectionProvider,
+  ISearchProvider,
   ISearchResult,
   ProviderSummary,
   StandardDisclaimer,
@@ -11,7 +11,7 @@ import React from "react";
 import { basePathPrefix, port } from "../../common/locations";
 import { Alert } from "@mui/material";
 
-export class ArtOfReadingProvider implements IImageCollectionProvider {
+export class ArtOfReadingProvider implements ISearchProvider {
   public label = "Art of Reading";
   public id = "aor";
   public logo = logo;

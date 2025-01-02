@@ -2,14 +2,14 @@ import { css } from "@emotion/react";
 import React, { useEffect } from "react";
 import { SearchResults } from "./SearchResults";
 import {
-  IImageCollectionProvider,
+  ISearchProvider,
   IImage,
   ISearchResult,
-} from "./providers/imageProvider";
+} from "./search-providers/imageProvider";
 import { SearchBar } from "./SearchBar";
 
 export const ImageSearch: React.FunctionComponent<{
-  provider: IImageCollectionProvider;
+  provider: ISearchProvider;
   lang: string;
   handleSelection: (item: IImage | undefined) => void;
 }> = (props) => {
@@ -119,7 +119,7 @@ export const ImageSearch: React.FunctionComponent<{
   );
 };
 
-const About: React.FunctionComponent<{ provider: IImageCollectionProvider }> = (
+const About: React.FunctionComponent<{ provider: ISearchProvider }> = (
   props
 ) => {
   return (

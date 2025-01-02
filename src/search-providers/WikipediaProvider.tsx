@@ -1,13 +1,12 @@
 import axios from "axios";
 import {
   IImage,
-  IImageCollectionProvider,
+  ISearchProvider,
   ISearchResult,
   ProviderSummary,
   StandardDisclaimer,
 } from "./imageProvider";
 import logo from "./WikiCommons.png";
-import { Alert } from "@mui/material";
 import React from "react";
 interface WikiImageInfo {
   descriptionurl: string;
@@ -43,7 +42,7 @@ interface WikiResponse {
   };
 }
 
-export class WikipediaProvider implements IImageCollectionProvider {
+export class WikipediaProvider implements ISearchProvider {
   public label = "Wikimedia Commons";
   public id = "wikipedia";
   public logo = logo;

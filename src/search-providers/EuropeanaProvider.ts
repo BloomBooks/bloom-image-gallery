@@ -1,13 +1,9 @@
 import axios from "axios";
-import {
-  IImage,
-  IImageCollectionProvider,
-  ISearchResult,
-} from "./imageProvider";
+import { IImage, ISearchProvider, ISearchResult } from "./imageProvider";
 import logo from "./europeana.png";
 import { basePathPrefix, port } from "../../common/locations";
 
-export class Europeana implements IImageCollectionProvider {
+export class Europeana implements ISearchProvider {
   private apiKey: string | undefined;
   public label = "Europeana";
   public id = "europeana";

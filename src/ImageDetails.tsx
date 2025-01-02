@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import React, { useEffect, useState } from "react";
-import { IImage } from "./providers/imageProvider";
+import { IImage } from "./search-providers/imageProvider";
 
 export const ImageDetails: React.FunctionComponent<{
   image?: IImage;

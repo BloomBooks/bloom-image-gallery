@@ -1,7 +1,7 @@
 import { Alert, Typography } from "@mui/material";
 import React, { PropsWithChildren } from "react";
 
-export interface IImageCollectionProvider {
+export interface ISearchProvider {
   local?: boolean;
   label: string;
   id: string;
@@ -14,7 +14,7 @@ export interface IImageCollectionProvider {
     pageZeroIndexed: number,
     language: string
   ): Promise<ISearchResult>;
-  checkReadiness?(): Promise<IImageCollectionProvider>;
+  checkReadiness?(): Promise<ISearchProvider>;
   aboutComponent?(): JSX.Element;
   onReadyStateChange?: () => void;
 }

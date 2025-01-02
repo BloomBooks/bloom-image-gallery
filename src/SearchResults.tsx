@@ -7,7 +7,7 @@ import {
   Alert,
 } from "@mui/material";
 import React, { useState } from "react";
-import { IImage } from "./providers/imageProvider";
+import { IImage } from "./search-providers/imageProvider";
 import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 

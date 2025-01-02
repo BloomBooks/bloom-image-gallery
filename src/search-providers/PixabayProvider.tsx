@@ -2,7 +2,7 @@ import axios from "axios";
 import logo from "./pixabay.png";
 import {
   IImage,
-  IImageCollectionProvider,
+  ISearchProvider,
   ISearchResult,
   ProviderSummary,
   StandardDisclaimer,
@@ -11,7 +11,7 @@ import { Alert, Button, TextField, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { useLocalStorageString } from "./useLocalStorageString";
 
-export class Pixabay implements IImageCollectionProvider {
+export class Pixabay implements ISearchProvider {
   public label = "Pixabay";
   public id = "pixabay";
   public logo = logo;

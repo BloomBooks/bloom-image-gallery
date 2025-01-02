@@ -22,24 +22,22 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import FolderIcon from "@mui/icons-material/Folder";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch } from "./ImageSearch";
-import { Pixabay } from "./providers/PixabayProvider";
-import { OpenVerse } from "./providers/OpenVerseProvider";
-import { Europeana } from "./providers/EuropeanaProvider";
-import { WikipediaProvider } from "./providers/WikipediaProvider";
-import { BrowserExtensionQueueProvider } from "./providers/BrowserExtensionQueueProvider";
-import { IImageCollectionProvider, IImage } from "./providers/imageProvider";
-import { ArtOfReadingProvider } from "./providers/ArtOfReadingProvider";
+import { Pixabay } from "./search-providers/PixabayProvider";
+import { OpenVerse } from "./search-providers/OpenVerseProvider";
+import { Europeana } from "./search-providers/EuropeanaProvider";
+import { WikipediaProvider } from "./search-providers/WikipediaProvider";
+import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionQueueProvider";
+import { ISearchProvider, IImage } from "./search-providers/imageProvider";
+import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
 
 const mdTheme = createTheme();
 const drawerWidth = 200;
 
 function App() {
   const [providerVersion, setProviderVersion] = useState(0);
-  const [imageProviders, setImageProviders] = useState<
-    IImageCollectionProvider[]
-  >([]);
+  const [imageProviders, setImageProviders] = useState<ISearchProvider[]>([]);
 
-  const addToImageProviders = (provider: IImageCollectionProvider) => {
+  const addToImageProviders = (provider: ISearchProvider) => {
     setImageProviders((prev) => {
       if (!prev.find((p) => p.id === provider.id)) {
         return [...prev, provider];
@@ -65,7 +63,7 @@ function App() {
   }, []); // Only run once on mount
 
   const [selectedProvider, setSelectedProvider] = useState<
-    IImageCollectionProvider | undefined
+    ISearchProvider | undefined
   >(undefined);
 
   const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
@@ -79,7 +77,7 @@ function App() {
     }
   }, [imageProviders]);
 
-  function handleSelectCollection(provider: IImageCollectionProvider) {
+  function handleSelectCollection(provider: ISearchProvider) {
     setSelectedProvider(provider);
   }
 

@@ -1,7 +1,7 @@
 import axios from "axios";
 import {
   IImage,
-  IImageCollectionProvider,
+  ISearchProvider,
   ISearchResult,
   ProviderSummary,
   StandardDisclaimer,
@@ -9,7 +9,7 @@ import {
 import logo from "./openverse.png";
 import { Alert } from "@mui/material";
 import React from "react";
-export class OpenVerse implements IImageCollectionProvider {
+export class OpenVerse implements ISearchProvider {
   public label = "OpenVerse";
   public id = "openverse";
   public logo = logo;
