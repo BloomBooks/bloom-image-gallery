@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { LicenseType } from "./bloomMediaMetadata";
-import { getStandardizeLicense } from "./metadata-provider";
+import { getStandardizedLicense } from "./metadata-provider";
 
 describe("getStandardizeLicense", () => {
   it("should handle exact license matches", () => {
-    const result = getStandardizeLicense("CC-BY");
+    const result = getStandardizedLicense("CC-BY");
     expect(result).toEqual({
       license: "CC-BY" as LicenseType,
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
@@ -12,7 +12,7 @@ describe("getStandardizeLicense", () => {
   });
 
   it("should handle case-insensitive matches", () => {
-    const result = getStandardizeLicense("cc-by");
+    const result = getStandardizedLicense("cc-by");
     expect(result).toEqual({
       license: "CC-BY" as LicenseType,
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
@@ -20,7 +20,7 @@ describe("getStandardizeLicense", () => {
   });
 
   it("should handle public domain variations", () => {
-    const result = getStandardizeLicense("PD");
+    const result = getStandardizedLicense("PD");
     expect(result).toEqual({
       license: "Public Domain" as LicenseType,
       licenseUrl: "https://creativecommons.org/publicdomain/mark/1.0/",
@@ -28,7 +28,7 @@ describe("getStandardizeLicense", () => {
   });
 
   it("should fallback to site specific with custom license URL", () => {
-    const result = getStandardizeLicense(
+    const result = getStandardizedLicense(
       "Custom License",
       "https://example.com/license"
     );
@@ -39,7 +39,7 @@ describe("getStandardizeLicense", () => {
   });
 
   it("should fallback to site specific with fallback URL", () => {
-    const result = getStandardizeLicense(
+    const result = getStandardizedLicense(
       "Custom License",
       undefined,
       "https://example.com/fallback"
@@ -51,12 +51,12 @@ describe("getStandardizeLicense", () => {
   });
 
   it("should return undefined for unknown license without fallbacks", () => {
-    const result = getStandardizeLicense("Unknown License");
+    const result = getStandardizedLicense("Unknown License");
     expect(result).toBeUndefined();
   });
 
   it("should handle whitespace in license names", () => {
-    const result = getStandardizeLicense("  CC-BY  ");
+    const result = getStandardizedLicense("  CC-BY  ");
     expect(result).toEqual({
       license: "CC-BY" as LicenseType,
       licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
@@ -64,7 +64,7 @@ describe("getStandardizeLicense", () => {
   });
 
   it("should handle license names with version numbers", () => {
-    const result = getStandardizeLicense(
+    const result = getStandardizedLicense(
       "cc-by-sa-4.0",
       "https://creativecommons.org/licenses/by-sa/4.0/"
     );
@@ -75,7 +75,7 @@ describe("getStandardizeLicense", () => {
   });
 
   it("should preserve version 3.0 license URLs when provided", () => {
-    const result = getStandardizeLicense(
+    const result = getStandardizedLicense(
       "CC-BY-SA",
       "https://creativecommons.org/licenses/by-sa/3.0/"
     );

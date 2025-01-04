@@ -1,5 +1,6 @@
 import { Alert, Typography } from "@mui/material";
 import React, { PropsWithChildren } from "react";
+import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
 
 export interface ISearchProvider {
   local?: boolean;
@@ -25,8 +26,10 @@ export interface ISearchResult {
   error?: string;
 }
 
+// an IImage is the metadata we will need for storing with the image in Bloom, but also some things that are helpful
+// in the image gallery tool for choosing images.
 // enhance: an Image could be an array of different available sizes (e.g. pixabay has several), and the user could choose
-export interface IImage {
+export interface IImage extends BloomMediaMetadata {
   thumbnailUrl: string;
   reasonableSizeUrl?: string;
   sourceWebPage?: string;
@@ -34,10 +37,6 @@ export interface IImage {
   type: string;
   width?: number;
   height?: number;
-  license?: string;
-  licenseUrl?: string;
-  creator?: string;
-  creatorUrl?: string;
   raw?: object;
 }
 

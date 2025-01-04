@@ -45,8 +45,8 @@ export class Pixabay implements ISearchProvider {
     const imageType = "illustration";
     const response = await axios.get<PixabayResponse>(
       `https://pixabay.com/api/?key=${key}&safesearch=true&q=${term}` +
-        `&page=${pageZeroIndexed + 1}&per_page=${perPage}` +
-        `&image_type=${imageType}`
+        `&page=${pageZeroIndexed + 1}&per_page=${perPage}`
+      //+ `&image_type=${imageType}`
     );
 
     // Store the total hits for pagination
@@ -149,7 +149,7 @@ export class Pixabay implements ISearchProvider {
   }
 }
 
-interface PixabayImage {
+export interface PixabayImage {
   id: number;
   previewURL: string; // 	Low resolution images with a maximum width or height of 150 px (previewWidth x previewHeight).
 
@@ -168,8 +168,8 @@ interface PixabayImage {
   // only available if your account has been approved for full API access
   // fullHDURL	Full HD scaled image with a maximum width/height of 1920px.
   fullHDURL: string;
-
-  // pixabay also offers original image if your account has been approved for full API access
+  size: number; // Size of the image in bytes.
+  user: string; // User name of the contributor.
 }
 
 interface PixabayResponse {

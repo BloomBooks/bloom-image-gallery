@@ -1,26 +1,24 @@
 import axios from "axios";
 import React from "react";
-import { Alert } from "@mui/material";
 import {
+  IImage,
   ISearchProvider,
   ISearchResult,
-  IImage,
   ProviderSummary,
 } from "./imageProvider";
 import logo from "./chrome.png";
-import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
 import { basePathPrefix, port } from "../../common/locations";
 import { WikiCommonsMediaProvider } from "../metadata-providers/WikiCommons-metadata-provider";
-
-// NB: must match what the Bloom Helper extension is sending us
-type DownloadMetadata = {
-  urlOfPage: string;
-  url: string;
-  savedAtPath: string;
-  when: Date;
-};
+import { PixabayMetadataProvider } from "../metadata-providers/Pixabay-metadata-provider";
+import { getStandardizedLicense } from "../metadata-providers/metadata-provider";
+import { DownloadRecord } from "../../common/bloomMediaMetadata";
 
 export class BrowserExtensionQueueProvider implements ISearchProvider {
+  private providers = [
+    new WikiCommonsMediaProvider(),
+    new PixabayMetadataProvider(),
+  ];
+
   readonly label = "Browser Downloads";
   readonly id = "browser-downloads";
   readonly local = false;
@@ -54,30 +52,43 @@ export class BrowserExtensionQueueProvider implements ISearchProvider {
         response.data
       );
 
-      const downloads = (response.data as DownloadMetadata[]) || [];
-
-      const provider = new WikiCommonsMediaProvider();
+      const downloads = (response.data as DownloadRecord[]) || [];
 
       const images = await Promise.all(
-        downloads.map(async (download: DownloadMetadata) => {
-          const metadata = await provider.getMetadata(
-            download.urlOfPage,
-            download.url
+        downloads.map(async (download: DownloadRecord) => {
+          const provider = this.providers.find((p) =>
+            p.canHandleDownload(download.urlOfPage)
           );
-          return {
-            thumbnailUrl: download.url,
-            reasonableSizeUrl: download.url,
+
+          // enhance: this is going to do internet requests for each image when we don't really need that
+          // metadata yet. We really only need it when the user clicks on a particular thumbnail. But this
+          // would require changing <ImageDetails> to ask a provider for metadata when it needs it.
+          const metadata = provider
+            ? await provider.getMetadata(download.urlOfPage, download.url)
+            : undefined;
+
+          const standardLicense = metadata?.license
+            ? getStandardizedLicense(metadata?.license, metadata?.licenseUrl)
+            : undefined;
+
+          const info: IImage = {
+            url: `http://localhost:${port}${basePathPrefix}/localFile?path=${encodeURIComponent(download.computedLocalSavedPath)}`,
+            thumbnailUrl: `http://localhost:${port}${basePathPrefix}/localFile?path=${encodeURIComponent(download.computedLocalSavedPath)}`,
+            reasonableSizeUrl: `http://localhost:${port}${basePathPrefix}/localFile?path=${encodeURIComponent(download.computedLocalSavedPath)}`,
+            ...standardLicense,
+            credits: metadata?.credits,
             size: 0,
             type: "image/jpeg", // todo
             width: 0,
             height: 0,
-            raw: metadata,
-            license: metadata?.license,
-            licenseUrl: metadata?.licenseUrl,
-            creator: metadata?.credits,
-            creatorUrl: metadata?.credits,
             sourceWebPage: download.urlOfPage,
+            raw: metadata,
           };
+          console.log(
+            "metadata for a stored download:",
+            JSON.stringify(info, null, 2)
+          );
+          return info;
         })
       );
 

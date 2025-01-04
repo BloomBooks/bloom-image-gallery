@@ -7,6 +7,8 @@ import { CommonRoutesConfig } from "./common.routes.config.js";
 import { LocalCollectionRoutes } from "./localCollection.routes.config.js";
 import { ExternalApiKeyRoutes } from "./externalCollection.routes.config.js";
 import { BrowserExtensionQueueRoutes } from "./browserExtensionQueueRoutes.js";
+import path from "path";
+import fs from "fs";
 
 const app: express.Application = express();
 const server: http.Server = http.createServer(app);
@@ -29,6 +31,27 @@ routes.push(new BrowserExtensionQueueRoutes(router));
 
 // Mount the router under the prefix
 app.use(basePathPrefix, router);
+
+// Add the localFile endpoint
+router.get("/localFile", (req, res) => {
+  console.log("localFile", req.query.path);
+  const filePath = req.query.path as string;
+  if (!filePath) {
+    res.status(400).send("File path is required");
+    return;
+  }
+  // decode the path that is url encoded
+  const decodedPath = decodeURIComponent(filePath);
+
+  // Basic security check to prevent directory traversal
+  const normalizedPath = path.normalize(decodedPath);
+  if (!fs.existsSync(normalizedPath)) {
+    res.status(404).send("File not found");
+    return;
+  }
+
+  res.sendFile(normalizedPath);
+});
 
 // Add 404 handling for unknown routes
 app.use((req: express.Request, res: express.Response) => {

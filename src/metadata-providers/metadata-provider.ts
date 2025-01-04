@@ -1,13 +1,14 @@
+import { IImage } from "../search-providers/imageProvider";
 import { BloomMetadata, LicenseType } from "./bloomMediaMetadata";
 
 export interface MetadataProvider {
   getMetadata(
     sourcePageUrl: string,
     imageUrl: string
-  ): Promise<BloomMetadata | undefined>;
+  ): Promise<IImage | undefined>;
 }
 
-export function getStandardizeLicense(
+export function getStandardizedLicense(
   licenseNameFromMetadata: string,
   licenseUrlFromMetadata?: string,
   siteSpecificLicenseUrlFallback?: string

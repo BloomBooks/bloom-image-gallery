@@ -1,4 +1,4 @@
-import { MetadataProvider, getStandardizeLicense } from "./metadata-provider";
+import { MetadataProvider, getStandardizedLicense } from "./metadata-provider";
 import { BloomMetadata } from "./bloomMediaMetadata";
 
 export class WikiCommonsMediaProvider implements MetadataProvider {
@@ -28,7 +28,7 @@ export class WikiCommonsMediaProvider implements MetadataProvider {
       const info =
         data.query.pages[Object.keys(data.query.pages)[0]].imageinfo[0];
       console.log(JSON.stringify(info, null, 2));
-      const result = getStandardizeLicense(
+      const result = getStandardizedLicense(
         info.extmetadata.LicenseShortName.value,
         info.extmetadata.LicenseUrl?.value,
         "https://commons.wikimedia.org/wiki/Commons:Licensing" // fallback if we can't figure out the license

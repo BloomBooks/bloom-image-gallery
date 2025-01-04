@@ -92,10 +92,10 @@ export const ImageDetails: React.FunctionComponent<{
               {getUserFriendlySize(fileSize)}
             </>
           )}
-          {props.image.creator && (
+          {props.image.credits && (
             <>
               <br />
-              {props.image.creator}
+              {props.image.credits}
             </>
           )}
           {props.image.license && (
