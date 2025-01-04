@@ -44,7 +44,9 @@ export class Pixabay implements ISearchProvider {
     const term = encodeURIComponent(searchTerm);
     const imageType = "illustration";
     const response = await axios.get<PixabayResponse>(
-      `https://pixabay.com/api/?key=${key}&safesearch=true&q=${term}` +
+      `https://pixabay.com/api/?` +
+        `key=${key}` +
+        `&safesearch=true&q=${term}` +
         `&page=${pageZeroIndexed + 1}&per_page=${perPage}`
       //+ `&image_type=${imageType}`
     );
@@ -64,7 +66,7 @@ export class Pixabay implements ISearchProvider {
             type: "?",
             width: hit.webformatWidth,
             height: hit.webformatHeight,
-            license: "Pixabay License",
+            license: "Site Specific",
             licenseUrl: "https://pixabay.com/service/license/",
             raw: hit,
           }) as IImage

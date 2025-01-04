@@ -4,6 +4,16 @@ import { PixabayImage } from "../search-providers/PixabayProvider";
 import axios from "axios";
 import { IImage } from "../search-providers/imageProvider";
 
+//
+// !!!!!!!!!!!!!!!!!!!!
+// It's important to remember that the biggest use of the browser extension is to get images from Pixabay without having enter an api key.
+// But without the key, this provider can't get metadata from Pixabay, either. So it's easy to forget that this isn't actually
+// a problem-solver. Maybe a convienence?
+//
+// For pixabay, we don't need to credit anyone (it was originally CC0, and the new license also doesn't talk about attribution),
+// so that's sad but ok. The extension itself could scrape out the user name and put it in the credits field, though user names
+// also aren't that great for attribution.
+// !!!!!!!!!!!!!!!!!!!!
 export class PixabayMetadataProvider implements MetadataProvider {
   public canHandleDownload(url: string): boolean {
     return url.includes("pixabay.com");
