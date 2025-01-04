@@ -10,10 +10,19 @@ import {
 import logo from "./chrome.png";
 import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
 import { basePathPrefix, port } from "../../common/locations";
+import { WikiCommonsMediaProvider } from "../metadata-providers/WikiCommons-metadata-provider";
+
+// NB: must match what the Bloom Helper extension is sending us
+type DownloadMetadata = {
+  urlOfPage: string;
+  url: string;
+  savedAtPath: string;
+  when: Date;
+};
 
 export class BrowserExtensionQueueProvider implements ISearchProvider {
-  readonly label = "Browser Queue";
-  readonly id = "browser-queue";
+  readonly label = "Browser Downloads";
+  readonly id = "browser-downloads";
   readonly local = false;
   readonly justAListNoQuery = true;
   readonly logo = logo;
@@ -44,23 +53,33 @@ export class BrowserExtensionQueueProvider implements ISearchProvider {
         "BloomChromeExtensionProvider search response",
         response.data
       );
-      // the data is an array of BloomMediaMetadata
-      const downloads = (response.data as BloomMediaMetadata[]) || [];
 
-      const images: IImage[] = downloads.map((download: any) => ({
-        thumbnailUrl: download.url,
-        reasonableSizeUrl: download.url,
-        size: download.size || 0,
-        type: download.type || "image/jpeg", // todo
-        width: download.width,
-        height: download.height,
-        raw: download,
-        license: download.license,
-        licenseUrl: download.licenseUrl,
-        creator: download.creator,
-        creatorUrl: download.creatorUrl,
-        sourceWebPage: download.sourceWebPage,
-      }));
+      const downloads = (response.data as DownloadMetadata[]) || [];
+
+      const provider = new WikiCommonsMediaProvider();
+
+      const images = await Promise.all(
+        downloads.map(async (download: DownloadMetadata) => {
+          const metadata = await provider.getMetadata(
+            download.urlOfPage,
+            download.url
+          );
+          return {
+            thumbnailUrl: download.url,
+            reasonableSizeUrl: download.url,
+            size: 0,
+            type: "image/jpeg", // todo
+            width: 0,
+            height: 0,
+            raw: metadata,
+            license: metadata?.license,
+            licenseUrl: metadata?.licenseUrl,
+            creator: metadata?.credits,
+            creatorUrl: metadata?.credits,
+            sourceWebPage: download.urlOfPage,
+          };
+        })
+      );
 
       return { images };
     } catch (error) {

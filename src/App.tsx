@@ -1,15 +1,10 @@
 /// <reference types="@types/wicg-file-system-access" />
 import { css } from "@emotion/react";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
 import {
   Box,
-  CssBaseline,
-  AppBar,
-  Toolbar,
   Drawer,
-  Typography,
   List,
   ListItem,
   ListItemIcon,
@@ -26,7 +21,7 @@ import { Pixabay } from "./search-providers/PixabayProvider";
 import { OpenVerse } from "./search-providers/OpenVerseProvider";
 import { Europeana } from "./search-providers/EuropeanaProvider";
 import { WikipediaProvider } from "./search-providers/WikipediaProvider";
-import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionQueueProvider";
+import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionHistoryProvider";
 import { ISearchProvider, IImage } from "./search-providers/imageProvider";
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
 
