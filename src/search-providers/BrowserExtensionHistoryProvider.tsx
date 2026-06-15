@@ -28,7 +28,7 @@ export class BrowserExtensionQueueProvider implements ISearchProvider {
 
   aboutComponent(): JSX.Element {
     return (
-      <ProviderSummary>
+      <ProviderSummary title="About Browser Downloads">
         This area shows images saved by the Bloom Helper browser extension. When
         the extension is active, it keeps track of the images you download from
         websites (like Pixabay). It also saves important details, like the

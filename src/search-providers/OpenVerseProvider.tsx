@@ -17,6 +17,19 @@ export class OpenVerse implements ISearchProvider {
   private pageCountForPreviousQuery?: number;
   private previousQuery?: string;
 
+  // e.g. "View on www.flickr.com", derived from the landing page's host.
+  private formatSourceLabel(result: OpenVerseImage): string {
+    const url = result.foreign_landing_url || result.url;
+    if (url) {
+      try {
+        return `View on ${new URL(url).hostname}`;
+      } catch {
+        // fall through to a sensible default below
+      }
+    }
+    return result.source ? `View on ${result.source}` : "Source";
+  }
+
   private formatLicense(license: string): string {
     if (license.match(/^(by|by-sa|by-nd|by-nc|by-nc-sa|by-nc-nd)$/)) {
       return `CC-${license.toUpperCase()}`;
@@ -78,6 +91,7 @@ export class OpenVerse implements ISearchProvider {
               creator: result.creator,
               creatorUrl: result.creator_url,
               sourceWebPage: result.foreign_landing_url,
+              sourceWebPageLabel: this.formatSourceLabel(result),
               raw: result,
             }) as IImage
         ),
@@ -94,12 +108,11 @@ export class OpenVerse implements ISearchProvider {
   public aboutComponent(): JSX.Element {
     return (
       <>
-        <ProviderSummary>
+        <ProviderSummary title="About OpenVerse">
           Openverse searches multiple public repositories for CC-licensed and
           public domain works.{" "}
           <a href="https://openverse.org/about">More info</a>
         </ProviderSummary>
-        <br />
         <StandardDisclaimer />
       </>
     );
@@ -114,6 +127,7 @@ interface OpenVerseImage {
   creator: string;
   creator_url: string;
   foreign_landing_url: string;
+  source: string; // e.g. "flickr"
   license: string;
   license_url: string;
   mime_type: string;

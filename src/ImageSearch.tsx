@@ -20,6 +20,7 @@ export const ImageSearch: React.FunctionComponent<{
 
   // used for paging
   const [previousSearchTerm, setPreviousSearchTerm] = React.useState("");
+  const [previousLanguage, setPreviousLanguage] = React.useState(props.lang);
 
   function searchForImages(term: string, language: string): void {
     setIsLoading(true);
@@ -40,13 +41,13 @@ export const ImageSearch: React.FunctionComponent<{
       });
   }
 
-  function loadNextPage(language: string): void {
+  function loadNextPage(): void {
     if (searchResult && !isLoading) {
       const nextPage = lastRetrievedPageZeroIndexed + 1;
       setIsLoading(true);
       // Don't clear existing results while loading more
       props.provider
-        .search(previousSearchTerm, nextPage, language)
+        .search(previousSearchTerm, nextPage, previousLanguage)
         .then((result: ISearchResult) => {
           setSearchResult({
             images: [...searchResult.images, ...result.images],
@@ -69,6 +70,8 @@ export const ImageSearch: React.FunctionComponent<{
 
   useEffect(() => {
     setSearchResult(undefined);
+    // Changing the source invalidates the current selection.
+    props.handleSelection(undefined);
     // If this is just a list with no query capability, load it immediately
     if (props.provider.justAListNoQuery) {
       searchForImages("unused", props.lang);
@@ -82,13 +85,53 @@ export const ImageSearch: React.FunctionComponent<{
         min-width: 600px;
       `}
     >
+      <div
+        css={css`
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          margin-bottom: 24px;
+        `}
+      >
+        {props.provider.logo && (
+          <img
+            src={props.provider.logo}
+            alt={props.provider.label}
+            css={css`
+              height: 30px;
+              margin-right: 10px;
+            `}
+          />
+        )}
+        <h2
+          css={css`
+            margin: 0;
+            font-size: 1.3em;
+          `}
+        >
+          {props.provider.label}
+        </h2>
+        {!props.provider.isReady && (
+          <span
+            css={css`
+              margin-left: 10px;
+              color: #666;
+              font-style: italic;
+            `}
+          >
+            Not Ready
+          </span>
+        )}
+      </div>
       <div>
         <SearchBar
           provider={props.provider}
           initialLanguage={props.lang}
           onSearch={(term, lang) => {
             searchForImages(term, lang);
-            setPreviousSearchTerm(term); // store the term for paging
+            // store the term and language for paging
+            setPreviousSearchTerm(term);
+            setPreviousLanguage(lang);
           }}
         />
         {searchResult?.totalImages !== undefined && (
@@ -103,30 +146,42 @@ export const ImageSearch: React.FunctionComponent<{
           </span>
         )}
       </div>
-      {(!searchResult || searchResult.images.length === 0) && (
-        <About provider={props.provider} />
-      )}
       {searchResult?.images && searchResult.images.length > 0 && (
         <SearchResults
           images={searchResult?.images || []}
           handleSelection={props.handleSelection}
           isLoading={isLoading}
           error={searchResult?.error}
-          onBottomReached={() => loadNextPage(props.lang)}
+          onBottomReached={() => loadNextPage()}
         />
       )}
+      {searchResult &&
+        searchResult.images.length === 0 &&
+        !isLoading &&
+        !searchResult.error && (
+          <div
+            css={css`
+              margin-top: 20px;
+              color: #666;
+            `}
+          >
+            No matches found
+          </div>
+        )}
     </div>
   );
 };
 
-const About: React.FunctionComponent<{ provider: ISearchProvider }> = (
+export const About: React.FunctionComponent<{ provider: ISearchProvider }> = (
   props
 ) => {
   return (
     <div
       css={css`
-        margin: 100px 0 20px 0;
+        flex-grow: 1;
+        margin-left: 10px;
         max-width: 500px;
+        overflow-y: auto;
       `}
     >
       {props.provider.aboutComponent && props.provider.aboutComponent()}

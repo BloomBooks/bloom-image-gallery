@@ -97,7 +97,7 @@ export const SearchResults: React.FunctionComponent<{
         `}
         onScroll={handleScroll}
       >
-        <ImageList cols={3} rowHeight={164}>
+        <ImageList cols={3} rowHeight={164} sx={{ rowGap: "20px" }}>
           {props.images.map((image) => (
             <ImageListItemWithLazyLoad
               key={image.thumbnailUrl}

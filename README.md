@@ -12,10 +12,10 @@ This repository includes a little server process for use during development, but
 
 # Developing
 
-1. Requires [Volta](https://github.com/volta-cli/volta)
-2. `yarn install` will load dependencies.
-3. `yarn dev` will run both the server and open a browser tab with the client. Everything will update automatically as you change files.
+1. Requires [Vite+](https://viteplus.dev) (the `vp` CLI). It manages the Node.js version (pinned in `devEngines` in `package.json`) and pnpm for you.
+2. `vp install` will load dependencies.
+3. `vp dev` (or the equivalent `pnpm dev`) will run both the little dev server and open a browser tab with the client. Everything will update automatically as you change files. (The dev server is started automatically by a Vite plugin; if you'd rather run it on its own, use `pnpm run server`.)
 
 ## Unit Tests
 
-`yarn test`
+`vp test`

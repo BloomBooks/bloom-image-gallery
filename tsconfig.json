@@ -8,7 +8,6 @@
     ],
     "types": [
       "vite/client", // Vite-injected env variables , Asset imports
-      "@emotion/react/types/css-prop",
       "@types/wicg-file-system-access"
     ],
     "allowJs": false,
@@ -22,7 +21,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
+    "jsxImportSource": "@emotion/react",
     "noImplicitAny": false, // eslint will warn
     "noUnusedLocals": false, // eslint will warn
     "noUnusedParameters": false, // eslint will warn

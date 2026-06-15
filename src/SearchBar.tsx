@@ -7,11 +7,21 @@ import {
   SelectChangeEvent,
 } from "@mui/material";
 import React from "react";
-import SearchIcon from "@mui/icons-material/Search";
+import { Search as SearchIcon } from "@mui/icons-material";
 import {
   ISearchProvider,
   ISearchResult,
 } from "./search-providers/imageProvider";
+
+// Used to turn language tags into human-readable names. Created once; guarded
+// because Intl.DisplayNames may be unavailable in some environments.
+const languageDisplayNames =
+  typeof Intl !== "undefined" && "DisplayNames" in Intl
+    ? new Intl.DisplayNames(
+        [typeof navigator !== "undefined" ? navigator.language : "en"],
+        { type: "language" }
+      )
+    : undefined;
 
 export const SearchBar: React.FunctionComponent<{
   provider: ISearchProvider;
@@ -33,14 +43,14 @@ export const SearchBar: React.FunctionComponent<{
     props.onSearch(searchTerm, newLang);
   };
 
+  // Map a language tag (e.g. "en", "fr") to a display name, the way Bloom shows
+  // real language names in the Art of Reading search-language menu. Uses the
+  // platform's Intl.DisplayNames and falls back to the raw tag if it can't.
   const getLanguageNameFromTag = (tag: string): string => {
-    switch (tag) {
-      case "en":
-        return "English";
-      case "es":
-        return "Spanish";
-      default:
-        return tag;
+    try {
+      return languageDisplayNames?.of(tag) ?? tag;
+    } catch {
+      return tag;
     }
   };
 
@@ -53,33 +63,6 @@ export const SearchBar: React.FunctionComponent<{
         margin-bottom: 10px;
       `}
     >
-      {props.provider.logo && (
-        <div
-          css={css`
-            display: flex;
-            align-items: center;
-          `}
-        >
-          <img
-            src={props.provider.logo}
-            alt={props.provider.label}
-            css={css`
-              height: 30px;
-              margin-right: 10px;
-            `}
-          />
-          {!props.provider.isReady && (
-            <span
-              css={css`
-                color: #666;
-                font-style: italic;
-              `}
-            >
-              Not Ready
-            </span>
-          )}
-        </div>
-      )}
       {props.provider.isReady && (
         <>
           {props.provider.justAListNoQuery ? (

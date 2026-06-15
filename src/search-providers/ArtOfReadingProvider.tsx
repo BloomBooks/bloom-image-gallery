@@ -17,19 +17,28 @@ export class ArtOfReadingProvider implements ISearchProvider {
   public logo = logo;
   public isReady = false;
   public local = true;
+  // The languages whose keyword indexes are available for searching. The
+  // SearchBar shows a language menu when this is set, mirroring the search-language
+  // dropdown Bloom offers for Art of Reading via the Palaso ImageToolboxDialog.
+  public languages?: string[];
 
   private collection = "Art Of Reading";
 
   public async checkReadiness() {
-    axios
-      .get(
+    try {
+      const response = await axios.get(
         `http://localhost:${port}${basePathPrefix}/local-collections/collections`
-      )
-      .then((response) => {
-        if (response.data.collections.includes(this.collection)) {
-          this.isReady = true;
-        }
-      });
+      );
+      if (response.data.collections.includes(this.collection)) {
+        this.isReady = true;
+        // The server reports which keyword languages the collection's index
+        // provides. Fall back to English if it doesn't say.
+        this.languages = response.data.languages ?? ["en"];
+      }
+    } catch {
+      // Server not available (e.g. running without the dev server); leave the
+      // provider not-ready.
+    }
     return this;
   }
   public async search(
@@ -60,7 +69,7 @@ export class ArtOfReadingProvider implements ISearchProvider {
   public aboutComponent(): JSX.Element {
     return (
       <>
-        <ProviderSummary>
+        <ProviderSummary title="About Art of Reading">
           International Illustrations: Art of Reading 3.0 is a collection of
           over 11,000 images. The collection is designed for use in the
           preparation of a wide variety of literacy and educational materials,

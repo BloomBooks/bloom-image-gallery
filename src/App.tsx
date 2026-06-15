@@ -14,14 +14,14 @@ import {
   Button,
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import FolderIcon from "@mui/icons-material/Folder";
+import { Folder as FolderIcon } from "@mui/icons-material";
 import { ImageDetails } from "./ImageDetails";
-import { ImageSearch } from "./ImageSearch";
+import { ImageSearch, About } from "./ImageSearch";
 import { Pixabay } from "./search-providers/PixabayProvider";
 import { OpenVerse } from "./search-providers/OpenVerseProvider";
-import { Europeana } from "./search-providers/EuropeanaProvider";
-import { WikipediaProvider } from "./search-providers/WikipediaProvider";
-import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionHistoryProvider";
+// import { Europeana } from "./search-providers/EuropeanaProvider";
+// import { WikipediaProvider } from "./search-providers/WikipediaProvider";
+// import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionHistoryProvider";
 import { ISearchProvider, IImage } from "./search-providers/imageProvider";
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
 
@@ -48,11 +48,11 @@ function App() {
       const pixabay = new Pixabay();
       pixabay.onReadyStateChange = forceUpdate;
       addToImageProviders(new OpenVerse());
-      addToImageProviders(new WikipediaProvider());
+      // addToImageProviders(new WikipediaProvider());
       addToImageProviders(await new ArtOfReadingProvider().checkReadiness());
-      addToImageProviders(new BrowserExtensionQueueProvider());
+      // addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(pixabay);
-      addToImageProviders(await new Europeana().checkReadiness());
+      // addToImageProviders(await new Europeana().checkReadiness());
     };
     initProviders();
   }, []); // Only run once on mount
@@ -83,6 +83,14 @@ function App() {
       color: #555;
       font-size: 14px;
     }
+  `;
+
+  // The first heading has no section above it, so it uses a smaller top margin
+  // that aligns its text with the source icon in the adjacent pane (which sits
+  // at the pane's 20px top padding).
+  const firstSidebarHeadingStyle = css`
+    ${sidebarHeadingStyle}
+    margin-top: 8px;
   `;
 
   return (
@@ -117,7 +125,10 @@ function App() {
               }
             }}
           >
-            <List>
+            <List disablePadding>
+              <ListItem css={firstSidebarHeadingStyle}>
+                <ListItemText primary="This Computer" />
+              </ListItem>
               <ListItem>
                 {/* a Material UI contained button with a folder icon */}
                 <Button
@@ -154,6 +165,42 @@ function App() {
                 </Button>
               </ListItem>
 
+              <ListItem css={sidebarHeadingStyle}>
+                <ListItemText primary="Collections on this Computer" />
+              </ListItem>
+              {imageProviders
+                ?.filter((p) => p.local)
+                .map((provider) => (
+                  <ListItemButton
+                    key={provider.id}
+                    onClick={() => handleSelectCollection(provider)}
+                    selected={provider === selectedProvider}
+                    dense
+                    sx={{
+                      position: "relative",
+                      // Add a semi-transparent overlay to show that it's not ready
+                      "&::after": !provider.isReady
+                        ? {
+                            content: '""',
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            backgroundColor: "#ffffff80",
+                          }
+                        : {},
+                    }}
+                  >
+                    {provider.logo && (
+                      <ListItemIcon>
+                        <img src={provider.logo} width={24} />
+                      </ListItemIcon>
+                    )}
+                    <ListItemText primary={provider.label}></ListItemText>
+                  </ListItemButton>
+                ))}
+
               <ListItem>
                 <ListItemText
                   primary="Online Sources"
@@ -180,42 +227,6 @@ function App() {
                             bottom: 0,
                             backgroundColor: "#ffffff80",
                             pointerEvents: "none",
-                          }
-                        : {},
-                    }}
-                  >
-                    {provider.logo && (
-                      <ListItemIcon>
-                        <img src={provider.logo} width={24} />
-                      </ListItemIcon>
-                    )}
-                    <ListItemText primary={provider.label}></ListItemText>
-                  </ListItemButton>
-                ))}
-
-              <ListItem css={sidebarHeadingStyle}>
-                <ListItemText primary="Collections on this Computer" />
-              </ListItem>
-              {imageProviders
-                ?.filter((p) => p.local)
-                .map((provider) => (
-                  <ListItemButton
-                    key={provider.id}
-                    onClick={() => handleSelectCollection(provider)}
-                    selected={provider === selectedProvider}
-                    dense
-                    sx={{
-                      position: "relative",
-                      // Add a semi-transparent overlay to show that it's not ready
-                      "&::after": !provider.isReady
-                        ? {
-                            content: '""',
-                            position: "absolute",
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            backgroundColor: "#ffffff80",
                           }
                         : {},
                     }}
@@ -257,7 +268,11 @@ function App() {
                 handleSelection={setSelectedImage}
               />
               <Divider orientation="vertical" flexItem />
-              <ImageDetails image={selectedImage} />
+              {selectedImage ? (
+                <ImageDetails image={selectedImage} />
+              ) : (
+                <About provider={selectedProvider} />
+              )}
             </div>
           )}
         </Box>

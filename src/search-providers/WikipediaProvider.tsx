@@ -128,11 +128,10 @@ export class WikipediaProvider implements ISearchProvider {
   public aboutComponent(): JSX.Element {
     return (
       <>
-        <ProviderSummary>
+        <ProviderSummary title="About Wikimedia Commons">
           Wikimedia Commons is a collection of media that is free to use. The
           OpenVerse search also includes results from Wikimedia Commons.
         </ProviderSummary>
-        <br />
         <StandardDisclaimer />
       </>
     );

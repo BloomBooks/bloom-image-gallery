@@ -7,7 +7,8 @@ import {
   ProviderSummary,
   StandardDisclaimer,
 } from "./imageProvider";
-import { Alert, Button, TextField, Typography } from "@mui/material";
+import { Alert, IconButton, InputAdornment, TextField } from "@mui/material";
+import { ContentPaste as ContentPasteIcon } from "@mui/icons-material";
 import React, { useState } from "react";
 import { useLocalStorageString } from "./useLocalStorageString";
 
@@ -62,11 +63,12 @@ export class Pixabay implements ISearchProvider {
             // review: we have at least 3 premade sizes and can get a custom size too
             reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
             sourceWebPage: hit.pageURL,
-            size: 0,
+            sourceWebPageLabel: "View on Pixabay",
+            size: hit.imageSize,
             type: "?",
-            width: hit.webformatWidth,
-            height: hit.webformatHeight,
-            license: "Site Specific",
+            width: hit.imageWidth,
+            height: hit.imageHeight,
+            license: "Pixabay License",
             licenseUrl: "https://pixabay.com/service/license/",
             raw: hit,
           }) as IImage
@@ -82,70 +84,67 @@ export class Pixabay implements ISearchProvider {
 
     return (
       <>
-        <ProviderSummary>
+        <ProviderSummary title="About Pixabay">
           Pixabay is a large collection of images that may be used for free
           without attribution.
         </ProviderSummary>
-        <br />
         {!apiKey && (
-          <>
-            <Alert severity="info">
-              To use Pixabay, you need an API key:
-              <ol>
-                <li>Create a Pixabay account and log in</li>
-                <li>
-                  Go to{" "}
-                  <a
-                    href="https://pixabay.com/api/docs/"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    this page
-                  </a>
-                </li>
-                <li>
-                  Copy the API key shown next to &quot;Your API key:&quot;
-                </li>
-                <li>Paste it below</li>
-              </ol>
-            </Alert>
-            <br />
-          </>
+          <Alert severity="info" sx={{ marginBottom: 2 }}>
+            To use Pixabay, you need an API key:
+            <ol>
+              <li>Create a Pixabay account and log in</li>
+              <li>
+                Go to{" "}
+                <a
+                  href="https://pixabay.com/api/docs/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  this page
+                </a>
+              </li>
+              <li>Copy the API key shown next to &quot;Your API key:&quot;</li>
+              <li>Paste it below</li>
+            </ol>
+          </Alert>
         )}
+        <TextField
+          label="Pixabay API Key"
+          value={keyInTextField}
+          onChange={(e) => setKeyInTextField(e.target.value)}
+          onBlur={() => {
+            const trimmedKey = keyInTextField.trim();
+            if (trimmedKey) {
+              setApiKey(trimmedKey);
+            } else {
+              setApiKey("");
+            }
+            setKeyInTextField(trimmedKey);
+            this.onReadyStateChange?.();
+          }}
+          fullWidth
+          sx={{ marginBottom: 2 }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="Paste API key from clipboard"
+                  title="Paste"
+                  edge="end"
+                  onClick={async () => {
+                    const text = (await navigator.clipboard.readText()).trim();
+                    setKeyInTextField(text);
+                    setApiKey(text);
+                    this.onReadyStateChange?.();
+                  }}
+                >
+                  <ContentPasteIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
         <StandardDisclaimer />
-        <br />
-        <div style={{ display: "flex", gap: "8px" }}>
-          <TextField
-            label="Pixabay API Key"
-            value={keyInTextField}
-            onChange={(e) => setKeyInTextField(e.target.value)}
-            onBlur={() => {
-              const trimmedKey = keyInTextField.trim();
-              if (trimmedKey) {
-                setApiKey(trimmedKey);
-              } else {
-                setApiKey("");
-              }
-              setKeyInTextField(trimmedKey);
-              this.onReadyStateChange?.();
-            }}
-            fullWidth
-            margin="normal"
-          />
-          <Button
-            variant="contained"
-            sx={{ marginTop: "16px" }}
-            onClick={async () => {
-              const text = await navigator.clipboard.readText();
-              console.log("Pasting", text);
-              setKeyInTextField(text);
-              setApiKey(text);
-              this.onReadyStateChange?.();
-            }}
-          >
-            Paste
-          </Button>
-        </div>
       </>
     );
   }
@@ -162,6 +161,11 @@ export interface PixabayImage {
   webformatURL: string;
   webformatWidth: number;
   webformatHeight: number;
+
+  // Dimensions and size of the original full-resolution image.
+  imageWidth: number;
+  imageHeight: number;
+  imageSize: number; // Size of the original image in bytes.
 
   largeImageURL: string; // Scaled image with a maximum width/height of 1280px.
 

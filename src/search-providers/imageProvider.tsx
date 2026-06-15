@@ -33,6 +33,7 @@ export interface IImage extends BloomMediaMetadata {
   thumbnailUrl: string;
   reasonableSizeUrl?: string;
   sourceWebPage?: string;
+  sourceWebPageLabel?: string; // link text for sourceWebPage; defaults to "Source"
   size: number;
   type: string;
   width?: number;
@@ -50,18 +51,31 @@ export const StandardDisclaimer: React.FunctionComponent<{}> = () => {
   );
 };
 
-export const ProviderSummary = ({ children }: PropsWithChildren<{}>) => {
+export const ProviderSummary = ({
+  title,
+  children,
+}: PropsWithChildren<{ title?: string }>) => {
   return (
     <Typography
+      component="div"
       variant="body1"
       sx={{
         backgroundColor: "#d1e5ff",
         padding: 2,
         borderRadius: 1,
         border: "1px solid #e0e0e0",
+        marginTop: 2,
         marginBottom: 2,
       }}
     >
+      {title && (
+        <Typography
+          component="div"
+          sx={{ fontWeight: "bold", marginBottom: 1 }}
+        >
+          {title}
+        </Typography>
+      )}
       {children}
     </Typography>
   );

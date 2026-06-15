@@ -24,7 +24,11 @@ export const ImageDetails: React.FunctionComponent<{
   }, [props.image]);
 
   useEffect(() => {
-    if (props.image?.reasonableSizeUrl) {
+    // Prefer the original image's size reported by the provider. Only fall back to
+    // measuring the preview image (reasonableSizeUrl) when the provider didn't supply one.
+    if (props.image?.size) {
+      setFileSize(props.image.size);
+    } else if (props.image?.reasonableSizeUrl) {
       fetch(props.image.reasonableSizeUrl, { method: "HEAD" })
         .then((response) => {
           const size = response.headers.get("content-length");
@@ -34,7 +38,18 @@ export const ImageDetails: React.FunctionComponent<{
     }
   }, [props.image]);
 
+  // Prefer the original image's dimensions reported by the provider; otherwise fall back
+  // to whatever the preview image turns out to be once it loads.
+  useEffect(() => {
+    if (props.image?.width && props.image?.height) {
+      setDimensions({ width: props.image.width, height: props.image.height });
+    } else {
+      setDimensions({ width: 0, height: 0 });
+    }
+  }, [props.image]);
+
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if (props.image?.width && props.image?.height) return;
     const img = e.currentTarget;
     setDimensions({
       width: img.naturalWidth,
@@ -123,7 +138,7 @@ export const ImageDetails: React.FunctionComponent<{
                 rel="noreferrer"
                 title={props.image.sourceWebPage}
               >
-                Source
+                {props.image.sourceWebPageLabel || "Source"}
               </a>
             </>
           )}

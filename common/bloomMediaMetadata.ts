@@ -1,5 +1,7 @@
 export interface BloomMediaMetadata {
-  url: string;
+  // Optional: search results identify the image via thumbnailUrl/reasonableSizeUrl
+  // and only resolve a final url at download time.
+  url?: string;
   licenseUrl?: string;
   license?: LicenseType;
   credits?: string;
@@ -16,7 +18,8 @@ export type LicenseType =
   | "CC-BY-NC-SA"
   | "CC0"
   | "Public Domain"
-  | "Site Specific";
+  | "Site Specific"
+  | "Pixabay License";
 
 // NB: must match what the Bloom Helper extension is sending us
 export type DownloadRecord = {
