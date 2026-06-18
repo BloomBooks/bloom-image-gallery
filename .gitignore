@@ -6,3 +6,5 @@ dist-ssr
 node_modules/*
 pnpm-debug.log*
 serverOutput
+.pnp.cjs
+.pnp.loader.mjs

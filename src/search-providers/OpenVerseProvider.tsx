@@ -6,9 +6,10 @@ import {
   ProviderSummary,
   StandardDisclaimer,
 } from "./imageProvider";
-import logo from "./openverse.png";
+import logo from "./openverse.png?inline";
 import { Alert } from "@mui/material";
 import React from "react";
+import { useL10n } from "../localization";
 export class OpenVerse implements ISearchProvider {
   public label = "OpenVerse";
   public id = "openverse";
@@ -81,6 +82,7 @@ export class OpenVerse implements ISearchProvider {
           (result: OpenVerseImage) =>
             ({
               thumbnailUrl: result.thumbnail,
+              url: result.url,
               reasonableSizeUrl: result.url,
               size: 0,
               type: result.mime_type,
@@ -88,6 +90,7 @@ export class OpenVerse implements ISearchProvider {
               height: result.height,
               license: this.formatLicense(result.license),
               licenseUrl: result.license_url,
+              credits: result.creator, // creator is the copyright holder for CC-licensed work
               creator: result.creator,
               creatorUrl: result.creator_url,
               sourceWebPage: result.foreign_landing_url,
@@ -106,12 +109,13 @@ export class OpenVerse implements ISearchProvider {
   }
 
   public aboutComponent(): JSX.Element {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const l10n = useL10n();
     return (
       <>
-        <ProviderSummary title="About OpenVerse">
-          Openverse searches multiple public repositories for CC-licensed and
-          public domain works.{" "}
-          <a href="https://openverse.org/about">More info</a>
+        <ProviderSummary title={l10n("ImageLibrary.AboutOpenVerse", "About OpenVerse")}>
+          {l10n("ImageLibrary.OpenVerseDescription", "Openverse searches multiple public repositories for CC-licensed and public domain works.")}{" "}
+          <a href="https://openverse.org/about">{l10n("ImageLibrary.MoreInfo", "More info")}</a>
         </ProviderSummary>
         <StandardDisclaimer />
       </>

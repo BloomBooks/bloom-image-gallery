@@ -1,5 +1,6 @@
 import { css } from "@emotion/react";
 import React, { useEffect } from "react";
+import { useL10n } from "./localization";
 import { SearchResults } from "./SearchResults";
 import {
   ISearchProvider,
@@ -12,7 +13,11 @@ export const ImageSearch: React.FunctionComponent<{
   provider: ISearchProvider;
   lang: string;
   handleSelection: (item: IImage | undefined) => void;
+  numColumns?: number;
+  initialSearchTerm?: string;
+  onSearchTermChange?: (term: string) => void;
 }> = (props) => {
+  const l10n = useL10n();
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);
   const [lastRetrievedPageZeroIndexed, setLastRetrievedPageZeroIndexed] =
@@ -82,7 +87,7 @@ export const ImageSearch: React.FunctionComponent<{
     <div
       css={css`
         flex-grow: 0;
-        min-width: 600px;
+        flex-shrink: 0;
       `}
     >
       <div
@@ -119,7 +124,7 @@ export const ImageSearch: React.FunctionComponent<{
               font-style: italic;
             `}
           >
-            Not Ready
+            {l10n("ImageLibrary.NotReady", "Not Ready")}
           </span>
         )}
       </div>
@@ -127,6 +132,8 @@ export const ImageSearch: React.FunctionComponent<{
         <SearchBar
           provider={props.provider}
           initialLanguage={props.lang}
+          initialSearchTerm={props.initialSearchTerm}
+          onSearchTermChange={props.onSearchTermChange}
           onSearch={(term, lang) => {
             searchForImages(term, lang);
             // store the term and language for paging
@@ -142,7 +149,7 @@ export const ImageSearch: React.FunctionComponent<{
               font-size: 0.9em;
             `}
           >
-            {searchResult.totalImages.toLocaleString()} images
+            {l10n("ImageLibrary.ImageCount", "{0} images", searchResult.totalImages.toLocaleString())}
           </span>
         )}
       </div>
@@ -153,6 +160,7 @@ export const ImageSearch: React.FunctionComponent<{
           isLoading={isLoading}
           error={searchResult?.error}
           onBottomReached={() => loadNextPage()}
+          cols={props.numColumns}
         />
       )}
       {searchResult &&
@@ -165,7 +173,7 @@ export const ImageSearch: React.FunctionComponent<{
               color: #666;
             `}
           >
-            No matches found
+            {l10n("ImageLibrary.NoMatchesFound", "No matches found")}
           </div>
         )}
     </div>

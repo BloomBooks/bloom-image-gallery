@@ -1,10 +1,17 @@
+/** Versioned bundle of provider API keys that Bloom stores as an opaque JSON string. */
+export interface IProviderKeysV1 {
+  version: 1;
+  pixabay?: string;
+}
+
 export interface BloomMediaMetadata {
   // Optional: search results identify the image via thumbnailUrl/reasonableSizeUrl
   // and only resolve a final url at download time.
   url?: string;
   licenseUrl?: string;
   license?: LicenseType;
-  credits?: string;
+  credits?: string; // copyright holder / attribution text
+  creator?: string; // artist/photographer name
   sourceWebPage?: string;
   localPath?: string;
 }

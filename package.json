@@ -1,7 +1,16 @@
 {
-  "name": "image-gallery",
+  "name": "bloom-image-gallery",
   "version": "0.0.0",
   "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
   "scripts": {
     "client": "vp dev",
     "dev": "vp dev",

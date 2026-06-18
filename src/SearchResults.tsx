@@ -39,8 +39,8 @@ const ImageListItemWithLazyLoad: React.FC<{
       {(!isLoaded || !isVisible) && (
         <Skeleton
           variant="rectangular"
-          width={164}
-          height={164}
+          width={140}
+          height={140}
           sx={{
             position: "absolute",
             top: 0,
@@ -52,8 +52,8 @@ const ImageListItemWithLazyLoad: React.FC<{
       {isVisible && (
         <img
           src={image.thumbnailUrl}
-          width={164}
-          height={164}
+          width={140}
+          height={140}
           title={formatImageTitle(image)}
           onLoad={() => setIsLoaded(true)}
           css={css`
@@ -73,7 +73,14 @@ export const SearchResults: React.FunctionComponent<{
   isLoading: boolean;
   error?: string;
   onBottomReached?: () => void;
+  cols?: number;
 }> = (props) => {
+  const colCount = props.cols ?? 3;
+  const colWidth = 140;
+  const gapWidth = 8;
+  const scrollbarWidth = 17;
+  const gridWidth = colCount * colWidth + Math.max(0, colCount - 1) * gapWidth + scrollbarWidth;
+
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
     if (
@@ -91,13 +98,13 @@ export const SearchResults: React.FunctionComponent<{
         css={css`
           flex-grow: 0;
           position: relative;
-          height: 550px;
-          width: 550px;
+          height: 560px;
+          width: ${gridWidth}px;
           overflow-y: scroll;
         `}
         onScroll={handleScroll}
       >
-        <ImageList cols={3} rowHeight={164} sx={{ rowGap: "20px" }}>
+        <ImageList cols={colCount} rowHeight={140} sx={{ rowGap: "8px" }}>
           {props.images.map((image) => (
             <ImageListItemWithLazyLoad
               key={image.thumbnailUrl}
