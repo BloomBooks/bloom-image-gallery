@@ -1,5 +1,5 @@
 import axios from "axios";
-import logo from "./pixabay.png";
+import logo from "./pixabay.png?inline";
 import {
   IImage,
   ISearchProvider,
@@ -11,6 +11,7 @@ import { Alert, IconButton, InputAdornment, TextField } from "@mui/material";
 import { ContentPaste as ContentPasteIcon } from "@mui/icons-material";
 import React, { useState } from "react";
 import { useLocalStorageString } from "./useLocalStorageString";
+import { useL10n } from "../localization";
 
 export class Pixabay implements ISearchProvider {
   public label = "Pixabay";
@@ -18,9 +19,24 @@ export class Pixabay implements ISearchProvider {
   public logo = logo;
   private totalHits: number = 0;
   onReadyStateChange?: () => void;
+  private readonly initialKey?: string;
+  private readonly onKeyChange?: (key: string) => void;
+
+  constructor(options?: { initialKey?: string; onKeyChange?: (key: string) => void }) {
+    this.initialKey = options?.initialKey;
+    this.onKeyChange = options?.onKeyChange;
+    // Seed localStorage from the host-provided key only if it was never set (null).
+    // If the user explicitly cleared it (empty string), respect that choice.
+    if (options?.initialKey && localStorage.getItem("pixabayApiKey") === null) {
+      localStorage.setItem("pixabayApiKey", options.initialKey);
+    }
+  }
 
   get isReady(): boolean {
-    return !!localStorage.getItem("pixabayApiKey");
+    const stored = localStorage.getItem("pixabayApiKey");
+    // null  = never set → fall back to host-provided key
+    // ""    = deliberately cleared by user → treat as not ready
+    return stored === null ? !!this.initialKey : !!stored;
   }
 
   public async search(
@@ -62,6 +78,7 @@ export class Pixabay implements ISearchProvider {
             thumbnailUrl: hit.previewURL,
             // review: we have at least 3 premade sizes and can get a custom size too
             reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
+            url: hit.largeImageURL, // 1280px max; used as the download URL when confirmed
             sourceWebPage: hit.pageURL,
             sourceWebPageLabel: "View on Pixabay",
             size: hit.imageSize,
@@ -70,6 +87,8 @@ export class Pixabay implements ISearchProvider {
             height: hit.imageHeight,
             license: "Pixabay License",
             licenseUrl: "https://pixabay.com/service/license/",
+            creator: hit.user,
+            credits: hit.user, // photographer holds the copyright under Pixabay License
             raw: hit,
           }) as IImage
       ),
@@ -77,6 +96,8 @@ export class Pixabay implements ISearchProvider {
   }
 
   public aboutComponent(): JSX.Element {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const l10n = useL10n();
     const [apiKey, setApiKey] = useLocalStorageString("pixabayApiKey");
     const [keyInTextField, setKeyInTextField] = useState(
       localStorage.getItem("pixabayApiKey") || ""
@@ -84,32 +105,37 @@ export class Pixabay implements ISearchProvider {
 
     return (
       <>
-        <ProviderSummary title="About Pixabay">
-          Pixabay is a large collection of images that may be used for free
-          without attribution.
+        <ProviderSummary title={l10n("ImageLibrary.AboutPixabay", "About Pixabay")}>
+          {l10n("ImageLibrary.PixabayDescription", "Pixabay is a large collection of images that may be used for free without attribution.")}
         </ProviderSummary>
         {!apiKey && (
           <Alert severity="info" sx={{ marginBottom: 2 }}>
-            To use Pixabay, you need an API key:
+            {l10n("ImageLibrary.PixabayApiKeyInstructions", "To use Pixabay, you need an API key:")}
             <ol>
-              <li>Create a Pixabay account and log in</li>
               <li>
-                Go to{" "}
                 <a
-                  href="https://pixabay.com/api/docs/"
+                  href="https://pixabay.com/accounts/login/?next=/api/docs/%2523api_search_images"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  this page
+                  {l10n("ImageLibrary.PixabayLogIn", "Log in to Pixabay")}
+                </a>
+                {" "}{l10n("ImageLibrary.PixabayOrIfLoggedIn", "or, if already logged in,")}{" "}
+                <a
+                  href="https://pixabay.com/api/docs/#api_search_images"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {l10n("ImageLibrary.PixabayGoToApiKeyPage", "go to the API key page")}
                 </a>
               </li>
-              <li>Copy the API key shown next to &quot;Your API key:&quot;</li>
-              <li>Paste it below</li>
+              <li>{l10n("ImageLibrary.PixabayFindKey", 'Copy the API key shown near the top of that page, next to "Your API key:"')}</li>
+              <li>{l10n("ImageLibrary.PixabayStep4", "Paste it below")}</li>
             </ol>
           </Alert>
         )}
         <TextField
-          label="Pixabay API Key"
+          label={l10n("ImageLibrary.PixabayApiKeyLabel", "Pixabay API Key")}
           value={keyInTextField}
           onChange={(e) => setKeyInTextField(e.target.value)}
           onBlur={() => {
@@ -120,6 +146,7 @@ export class Pixabay implements ISearchProvider {
               setApiKey("");
             }
             setKeyInTextField(trimmedKey);
+            this.onKeyChange?.(trimmedKey);
             this.onReadyStateChange?.();
           }}
           fullWidth
@@ -135,6 +162,7 @@ export class Pixabay implements ISearchProvider {
                     const text = (await navigator.clipboard.readText()).trim();
                     setKeyInTextField(text);
                     setApiKey(text);
+                    this.onKeyChange?.(text);
                     this.onReadyStateChange?.();
                   }}
                 >

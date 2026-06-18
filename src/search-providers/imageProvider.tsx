@@ -1,5 +1,6 @@
 import { Alert, Typography } from "@mui/material";
 import React, { PropsWithChildren } from "react";
+import { useL10n } from "../localization";
 import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
 
 export interface ISearchProvider {
@@ -42,11 +43,13 @@ export interface IImage extends BloomMediaMetadata {
 }
 
 export const StandardDisclaimer: React.FunctionComponent<{}> = () => {
+  const l10n = useL10n();
   return (
     <Alert severity="info">
-      These images are not from Bloom or SIL. This tool requests images suitable
-      for general audiences. However, we cannot guarantee that all images will
-      be inoffensive.
+      {l10n(
+        "ImageLibrary.Disclaimer",
+        "These images are not from Bloom or SIL. This tool requests images suitable for general audiences. However, we cannot guarantee that all images will be inoffensive."
+      )}
     </Alert>
   );
 };

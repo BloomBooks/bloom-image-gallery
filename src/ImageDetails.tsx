@@ -1,10 +1,12 @@
 import { css } from "@emotion/react";
 import React, { useEffect, useState } from "react";
 import { IImage } from "./search-providers/imageProvider";
+import { useL10n } from "./localization";
 
 export const ImageDetails: React.FunctionComponent<{
   image?: IImage;
 }> = (props) => {
+  const l10n = useL10n();
   const [dimensions, setDimensions] = useState({
     width: 0,
     height: 0,
@@ -18,10 +20,6 @@ export const ImageDetails: React.FunctionComponent<{
     const msize = ksize / 1024.0;
     return Math.round(msize) + "M";
   }
-
-  useEffect(() => {
-    console.log(`ImageDetails ${JSON.stringify(props.image, null, 2)}`);
-  }, [props.image]);
 
   useEffect(() => {
     // Prefer the original image's size reported by the provider. Only fall back to
@@ -64,19 +62,23 @@ export const ImageDetails: React.FunctionComponent<{
           display: flex;
           flex-direction: column;
           flex-grow: 1;
-          width: 300px;
+          min-width: 280px;
+          min-height: 0;
           margin-left: 10px;
+          padding-right: 10px;
+          overflow: hidden;
         `}
       >
-        <img
-          id={"details-image"}
-          onLoad={handleImageLoad}
-          src={props.image.reasonableSizeUrl}
+        {/* Wrapper sizes to image height, capped so it doesn't fill the whole panel */}
+        <div
           css={css`
-            display: block;
-            max-height: calc(100vh - 200px);
-            object-fit: contain;
-            width: 100%;
+            flex-shrink: 0;
+            min-height: 100px;
+            max-height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
             background-image: linear-gradient(45deg, #eee 25%, transparent 25%),
               linear-gradient(-45deg, #eee 25%, transparent 25%),
               linear-gradient(45deg, transparent 75%, #eee 75%),
@@ -88,7 +90,20 @@ export const ImageDetails: React.FunctionComponent<{
               10px -10px,
               -10px 0px;
           `}
-        />
+        >
+          <img
+            id={"details-image"}
+            onLoad={handleImageLoad}
+            src={props.image.reasonableSizeUrl}
+            css={css`
+              display: block;
+              max-height: 420px;
+              max-width: 100%;
+              min-width: 0;
+              object-fit: contain;
+            `}
+          />
+        </div>
         <div
           css={css`
             text-align: center;
@@ -107,9 +122,17 @@ export const ImageDetails: React.FunctionComponent<{
               {getUserFriendlySize(fileSize)}
             </>
           )}
+          {props.image.creator && (
+            <>
+              <br />
+              <span css={css`font-size: 0.85em; color: #666;`}>{l10n("ImageLibrary.PhotogrIllustrator", "Photographer/Illustrator:")} </span>
+              {props.image.creator}
+            </>
+          )}
           {props.image.credits && (
             <>
               <br />
+              <span css={css`font-size: 0.85em; color: #666;`}>{l10n("Common.Copyright", "Copyright")}: </span>
               {props.image.credits}
             </>
           )}
@@ -138,7 +161,7 @@ export const ImageDetails: React.FunctionComponent<{
                 rel="noreferrer"
                 title={props.image.sourceWebPage}
               >
-                {props.image.sourceWebPageLabel || "Source"}
+                {props.image.sourceWebPageLabel || l10n("ImageLibrary.Source", "Source")}
               </a>
             </>
           )}

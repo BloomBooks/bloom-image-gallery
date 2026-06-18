@@ -12,6 +12,7 @@ import {
   ISearchProvider,
   ISearchResult,
 } from "./search-providers/imageProvider";
+import { useL10n } from "./localization";
 
 // Used to turn language tags into human-readable names. Created once; guarded
 // because Intl.DisplayNames may be unavailable in some environments.
@@ -26,13 +27,16 @@ const languageDisplayNames =
 export const SearchBar: React.FunctionComponent<{
   provider: ISearchProvider;
   initialLanguage: string;
+  initialSearchTerm?: string;
+  onSearchTermChange?: (term: string) => void;
   onSearch: (searchTerm: string, language: string) => void;
 }> = (props) => {
+  const l10n = useL10n();
   const [searchLanguage, setSearchLanguage] = React.useState(
     props.initialLanguage
   );
 
-  const [searchTerm, setSearchTerm] = React.useState("bubbles");
+  const [searchTerm, setSearchTerm] = React.useState(props.initialSearchTerm ?? "bubbles");
 
   const handleLanguageChange = (
     event: SelectChangeEvent<string>,
@@ -72,13 +76,13 @@ export const SearchBar: React.FunctionComponent<{
               onClick={() => props.onSearch(searchTerm, searchLanguage)}
               startIcon={<SearchIcon />}
             >
-              Refresh
+              {l10n("ImageLibrary.Refresh", "Refresh")}
             </Button>
           ) : (
             <>
               <TextField
                 id="outlined-basic"
-                label="Search"
+                label={l10n("ImageLibrary.Search", "Search")}
                 variant="outlined"
                 size="small"
                 value={searchTerm}
@@ -87,7 +91,10 @@ export const SearchBar: React.FunctionComponent<{
                     props.onSearch(searchTerm, searchLanguage);
                   }
                 }}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  props.onSearchTermChange?.(e.target.value);
+                }}
                 sx={{ width: "150px" }}
               ></TextField>
               <Button

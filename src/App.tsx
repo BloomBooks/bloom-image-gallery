@@ -1,10 +1,14 @@
 /// <reference types="@types/wicg-file-system-access" />
 import { css } from "@emotion/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ALL_GALLERY_STRINGS,
+  LocalizationContext,
+  useL10nFromTranslations,
+} from "./localization";
 
 import {
   Box,
-  Drawer,
   List,
   ListItem,
   ListItemIcon,
@@ -24,11 +28,36 @@ import { OpenVerse } from "./search-providers/OpenVerseProvider";
 // import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionHistoryProvider";
 import { ISearchProvider, IImage } from "./search-providers/imageProvider";
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
+import { IProviderKeysV1 } from "../common/bloomMediaMetadata";
 
-const mdTheme = createTheme();
 const drawerWidth = 200;
 
-function App() {
+export interface IImageGalleryProps {
+  /** Called when the user confirms an image selection; host should insert the image. */
+  onConfirmSelection: (image: IImage) => void;
+  /** Called when the user clicks the button to open a file; host opens a file picker and returns the chosen image. */
+  onPickLocalFile: () => Promise<IImage | undefined>;
+  /** Called when the user cancels without selecting an image. */
+  onCancel?: () => void;
+  /** Base URL for the Art of Reading image service. Must be provided to allow this provider to function. */
+  artOfReadingBaseUrl?: string;
+  /** BCP 47 language tag for search queries (e.g. "en", "fr"). Defaults to "en". */
+  lang?: string;
+  /** Versioned bundle of provider API keys loaded from the host's durable storage. */
+  initialProviderKeys?: IProviderKeysV1;
+  /** Called whenever a provider key is added or changed; host should persist the bundle. */
+  onProviderKeysChange?: (keys: IProviderKeysV1) => void;
+  /** Primary color for buttons, selection highlights, links, etc. (hex string, e.g. "#1d94a4"). */
+  primaryColor?: string;
+  /** Called once at mount with all gallery string IDs and their English defaults.
+   *  Should return a dictionary of translated strings for the current UI language.
+   *  Missing keys fall back to the English defaults. */
+  getLocalizations?: (
+    strings: Record<string, string>
+  ) => Promise<Record<string, string>>;
+}
+
+function App(props: IImageGalleryProps) {
   const [providerVersion, setProviderVersion] = useState(0);
   const [imageProviders, setImageProviders] = useState<ISearchProvider[]>([]);
 
@@ -45,11 +74,17 @@ function App() {
   useEffect(() => {
     const initProviders = async () => {
       const forceUpdate = () => setProviderVersion((v) => v + 1);
-      const pixabay = new Pixabay();
+      const pixabay = new Pixabay({
+        initialKey: props.initialProviderKeys?.pixabay,
+        onKeyChange: (key) =>
+          props.onProviderKeysChange?.({ version: 1, pixabay: key }),
+      });
       pixabay.onReadyStateChange = forceUpdate;
       addToImageProviders(new OpenVerse());
       // addToImageProviders(new WikipediaProvider());
-      addToImageProviders(await new ArtOfReadingProvider().checkReadiness());
+      addToImageProviders(
+        await new ArtOfReadingProvider(props.artOfReadingBaseUrl).checkReadiness()
+      );
       // addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(pixabay);
       // addToImageProviders(await new Europeana().checkReadiness());
@@ -60,6 +95,45 @@ function App() {
   const [selectedProvider, setSelectedProvider] = useState<
     ISearchProvider | undefined
   >(undefined);
+
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const l10n = useL10nFromTranslations(translations);
+
+  useEffect(() => {
+    if (!props.getLocalizations) return;
+    props.getLocalizations(ALL_GALLERY_STRINGS).then(setTranslations);
+  }, []); // run once on mount; UI language changes require a Bloom restart
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [numColumns, setNumColumns] = useState(3);
+  const mainBoxRef = useRef<HTMLElement>(null);
+
+  const updateColumns = useCallback((mainBoxWidth: number) => {
+    // Available width after the content div's 20px padding on each side
+    const available = mainBoxWidth - 40;
+    // Width of the scrollable search grid for a given column count
+    const colWidth = 140, gapWidth = 8, scrollbarWidth = 17;
+    const w = (cols: number) =>
+      cols * colWidth + Math.max(0, cols - 1) * gapWidth + scrollbarWidth;
+    // Keep at least 400px for the image-details panel; reduce columns if needed
+    const spacing = 20; // divider + ImageDetails margin-left
+    const minDetails = 400;
+    setNumColumns(
+      available - w(3) - spacing >= minDetails ? 3
+        : available - w(2) - spacing >= minDetails ? 2
+        : 1
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!mainBoxRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      updateColumns(entries[0].contentRect.width);
+    });
+    observer.observe(mainBoxRef.current);
+    updateColumns(mainBoxRef.current.getBoundingClientRect().width);
+    return () => observer.disconnect();
+  }, [updateColumns]);
 
   const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
     undefined
@@ -93,41 +167,49 @@ function App() {
     margin-top: 8px;
   `;
 
+  const theme = createTheme(
+    props.primaryColor
+      ? {
+          palette: { primary: { main: props.primaryColor } },
+          components: {
+            MuiButton: { styleOverrides: { root: { textTransform: "none" } } },
+          },
+        }
+      : {}
+  );
+  const primaryColor = theme.palette.primary.main;
+
   return (
-    <ThemeProvider theme={mdTheme}>
+    <LocalizationContext.Provider value={l10n}>
+    <ThemeProvider theme={theme}>
       <Box
         css={css`
-          height: 100vh;
+          height: 100%;
           display: flex;
+          a {
+            color: ${primaryColor};
+          }
         `}
       >
-        <Drawer
-          variant="permanent"
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            [`& .MuiDrawer-paper`]: {
-              width: drawerWidth,
-              boxSizing: "border-box",
-              height: "100%",
-            },
+        {/* Plain div sidebar — avoids MUI Drawer's position:fixed which escapes dialog bounds */}
+        <div
+          css={css`
+            width: ${drawerWidth}px;
+            flex-shrink: 0;
+            height: 100%;
+            overflow: auto;
+            border-right: 1px solid rgba(0, 0, 0, 0.12);
+          `}
+          onClick={(e) => {
+            // Only clear if clicking directly on the div, not its children
+            if (e.target === e.currentTarget) {
+              setSelectedProvider(undefined);
+            }
           }}
         >
-          <Box
-            sx={{
-              overflow: "auto",
-              height: "100%",
-            }}
-            onClick={(e) => {
-              // Only clear if clicking directly on the Box, not its children
-              if (e.target === e.currentTarget) {
-                setSelectedProvider(undefined);
-              }
-            }}
-          >
             <List disablePadding>
               <ListItem css={firstSidebarHeadingStyle}>
-                <ListItemText primary="This Computer" />
+                <ListItemText primary={l10n("ImageLibrary.ThisComputer", "This Computer")} />
               </ListItem>
               <ListItem>
                 {/* a Material UI contained button with a folder icon */}
@@ -135,38 +217,18 @@ function App() {
                   variant={selectedProvider ? "outlined" : "contained"}
                   startIcon={<FolderIcon />}
                   onClick={async () => {
-                    try {
-                      const [fileHandle] = await window.showOpenFilePicker({
-                        types: [
-                          {
-                            description: "Images",
-                            accept: {
-                              "image/jpeg": [".jpeg", ".jpg"],
-                              "image/png": [".png"],
-                              //todo 'image/tiff': ['.tiff'],
-                              "image/bmp": [".bmp"],
-                            },
-                          },
-                        ],
-                      });
-                      const file = await fileHandle.getFile();
-                      const url = URL.createObjectURL(file);
-                      setSelectedImage({
-                        thumbnailUrl: url,
-                        size: file.size,
-                        type: file.type,
-                      });
-                    } catch (error) {
-                      console.error(error);
+                    const image = await props.onPickLocalFile();
+                    if (image) {
+                      setSelectedImage(image);
                     }
                   }}
                 >
-                  Open File...
+                  {l10n("ImageLibrary.OpenFile", "Open File...")}
                 </Button>
               </ListItem>
 
               <ListItem css={sidebarHeadingStyle}>
-                <ListItemText primary="Collections on this Computer" />
+                <ListItemText primary={l10n("ImageLibrary.CollectionsOnThisComputer", "Collections on this Computer")} />
               </ListItem>
               {imageProviders
                 ?.filter((p) => p.local)
@@ -203,7 +265,7 @@ function App() {
 
               <ListItem>
                 <ListItemText
-                  primary="Online Sources"
+                  primary={l10n("ImageLibrary.OnlineSources", "Online Sources")}
                   css={sidebarHeadingStyle}
                 />
               </ListItem>
@@ -240,44 +302,81 @@ function App() {
                   </ListItemButton>
                 ))}
             </List>
-          </Box>
-        </Drawer>
+        </div>
         <Box
           component="main"
+          ref={mainBoxRef}
           css={css`
-            //            height: 100%;
             display: flex;
             flex-direction: column;
-            width: 100%;
+            flex: 1;
+            min-width: 0;
+            height: 100%;
           `}
         >
           {selectedProvider && (
             <div
               css={css`
                 display: flex;
-                flex-direction: row;
-                width: 100%;
-                height: calc(100vh - 84px);
+                flex-direction: column;
+                height: 100%;
                 padding: 20px;
               `}
             >
-              <ImageSearch
-                key={`${selectedProvider?.id}-${providerVersion}`}
-                provider={selectedProvider}
-                lang={"en"}
-                handleSelection={setSelectedImage}
-              />
-              <Divider orientation="vertical" flexItem />
-              {selectedImage ? (
-                <ImageDetails image={selectedImage} />
-              ) : (
-                <About provider={selectedProvider} />
-              )}
+              <div
+                css={css`
+                  display: flex;
+                  flex-direction: row;
+                  flex: 1;
+                  min-height: 0;
+                `}
+              >
+                <ImageSearch
+                  key={`${selectedProvider?.id}-${providerVersion}`}
+                  provider={selectedProvider}
+                  lang={props.lang ?? "en"}
+                  handleSelection={setSelectedImage}
+                  numColumns={numColumns}
+                  initialSearchTerm={searchTerm}
+                  onSearchTermChange={setSearchTerm}
+                />
+                <Divider orientation="vertical" flexItem />
+                {selectedImage ? (
+                  <ImageDetails image={selectedImage} />
+                ) : (
+                  <About key={selectedProvider.id} provider={selectedProvider} />
+                )}
+              </div>
+              <div
+                css={css`
+                  display: flex;
+                  flex-direction: row;
+                  justify-content: flex-end;
+                  gap: 8px;
+                  padding-top: 12px;
+                `}
+              >
+                {props.onCancel && (
+                  <Button variant="outlined" onClick={props.onCancel}>
+                    {l10n("Common.Cancel", "Cancel")}
+                  </Button>
+                )}
+                <Button
+                  variant="contained"
+                  disabled={!selectedImage}
+                  onClick={() =>
+                    selectedImage && props.onConfirmSelection(selectedImage)
+                  }
+                >
+                  {l10n("ImageLibrary.UseThisImage", "Use this image")}
+                </Button>
+              </div>
             </div>
           )}
         </Box>
       </Box>
     </ThemeProvider>
+    </LocalizationContext.Provider>
   );
 }
 
