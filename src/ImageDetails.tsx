@@ -125,7 +125,7 @@ export const ImageDetails: React.FunctionComponent<{
           {props.image.creator && (
             <>
               <br />
-              <span css={css`font-size: 0.85em; color: #666;`}>{l10n("ImageLibrary.PhotogrIllustrator", "Photographer/Illustrator:")} </span>
+              <span css={css`font-size: 0.85em; color: #666;`}>{l10n("Copyright.IllustratorOrPhotographer", "Illustrator/Photographer")}: </span>
               {props.image.creator}
             </>
           )}

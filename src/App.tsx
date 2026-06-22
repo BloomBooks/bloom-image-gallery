@@ -28,6 +28,8 @@ import { OpenVerse } from "./search-providers/OpenVerseProvider";
 // import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionHistoryProvider";
 import { ISearchProvider, IImage } from "./search-providers/imageProvider";
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
+import { basePathPrefix, port } from "../common/locations";
+import axios from "axios";
 import { IProviderKeysV1 } from "../common/bloomMediaMetadata";
 
 const drawerWidth = 200;
@@ -39,8 +41,10 @@ export interface IImageGalleryProps {
   onPickLocalFile: () => Promise<IImage | undefined>;
   /** Called when the user cancels without selecting an image. */
   onCancel?: () => void;
-  /** Base URL for the Art of Reading image service. Must be provided to allow this provider to function. */
-  artOfReadingBaseUrl?: string;
+  /** Base URL for the local image collections service (the path up to but not including
+   *  "/local-collections/..."). When provided the gallery enumerates all installed
+   *  collections under that URL and creates one provider entry per collection. */
+  localCollectionsBaseUrl?: string;
   /** BCP 47 language tag for search queries (e.g. "en", "fr"). Defaults to "en". */
   lang?: string;
   /** Versioned bundle of provider API keys loaded from the host's durable storage. */
@@ -82,9 +86,43 @@ function App(props: IImageGalleryProps) {
       pixabay.onReadyStateChange = forceUpdate;
       addToImageProviders(new OpenVerse());
       // addToImageProviders(new WikipediaProvider());
-      addToImageProviders(
-        await new ArtOfReadingProvider(props.artOfReadingBaseUrl).checkReadiness()
-      );
+      // Discover local image collections (e.g. Art of Reading) from the host.
+      // Each collection becomes its own provider entry.
+      const collectionsBaseUrl =
+        props.localCollectionsBaseUrl ??
+        `http://localhost:${port}${basePathPrefix}`;
+      try {
+        const response = await axios.get(
+          `${collectionsBaseUrl}/local-collections/collections`
+        );
+        type CollectionMeta = {
+          name: string;
+          licenseUrl?: string;
+          credits?: string;
+        };
+        const { collections, languages } = response.data as {
+          // The server returns objects {name, licenseUrl, credits}; accept plain strings
+          // too for backward compatibility with older dev servers.
+          collections: (CollectionMeta | string)[];
+          languages?: string[];
+        };
+        for (const item of collections) {
+          const name = typeof item === "string" ? item : item.name;
+          const licenseUrl = typeof item === "object" ? item.licenseUrl : undefined;
+          const credits = typeof item === "object" ? item.credits : undefined;
+          const provider = new ArtOfReadingProvider(
+            name,
+            collectionsBaseUrl,
+            licenseUrl,
+            credits
+          );
+          provider.isReady = true;
+          provider.languages = languages ?? ["en"];
+          addToImageProviders(provider);
+        }
+      } catch {
+        // No local collections available (e.g. server not running in dev).
+      }
       // addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(pixabay);
       // addToImageProviders(await new Europeana().checkReadiness());
