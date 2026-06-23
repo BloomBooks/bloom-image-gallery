@@ -53,7 +53,7 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.OpenVerseDescription":
     "Openverse searches multiple public repositories for CC-licensed and public domain works.",
   "ImageLibrary.PasteApiKeyFromClipboard": "Paste API key from clipboard",
-  "ImageLibrary.PhotogrIllustrator": "Photographer/Illustrator:",
+  "Copyright.IllustratorOrPhotographer": "Illustrator/Photographer",
   "ImageLibrary.PixabayApiKeyInstructions":
     "To use Pixabay, you need an API key:",
   "ImageLibrary.PixabayApiKeyLabel": "Pixabay API Key",
