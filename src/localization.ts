@@ -60,7 +60,7 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.PixabayDescription":
     "Pixabay is a large collection of images that may be used for free without attribution.",
   "ImageLibrary.PixabayLogIn": "Log in to Pixabay",
-  "ImageLibrary.PixabayOrIfLoggedIn": "or, if already logged in,",
+  "ImageLibrary.PixabayOrIfLoggedIn": "{0} or, if already logged in, {1}",
   "ImageLibrary.PixabayGoToApiKeyPage": "go to the API key page",
   "ImageLibrary.PixabayFindKey":
     'Copy the API key shown on that page, next to "Your API key:"',
@@ -73,6 +73,18 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.ThisPage": "this page",
   "ImageLibrary.UseThisImage": "Use this image",
 };
+
+/** Interpolate React elements into a localized template string containing {0}, {1}, … markers.
+ *  Returns an array of React nodes suitable for rendering inside a JSX element. */
+export function interpolateJsx(
+  template: string,
+  elements: React.ReactNode[]
+): React.ReactNode[] {
+  return template.split(/(\{[0-9]+\})/).map((part) => {
+    const match = part.match(/^\{([0-9]+)\}$/);
+    return match ? elements[parseInt(match[1], 10)] : part;
+  });
+}
 
 /** Build a memoized l10n function from a translations dictionary. */
 export function useL10nFromTranslations(

@@ -16,6 +16,7 @@ export const ImageSearch: React.FunctionComponent<{
   numColumns?: number;
   initialSearchTerm?: string;
   onSearchTermChange?: (term: string) => void;
+  onLanguageChange?: (lang: string) => void;
 }> = (props) => {
   const l10n = useL10n();
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
@@ -138,6 +139,9 @@ export const ImageSearch: React.FunctionComponent<{
             searchForImages(term, lang);
             // store the term and language for paging
             setPreviousSearchTerm(term);
+            if (lang !== previousLanguage) {
+              props.onLanguageChange?.(lang);
+            }
             setPreviousLanguage(lang);
           }}
         />

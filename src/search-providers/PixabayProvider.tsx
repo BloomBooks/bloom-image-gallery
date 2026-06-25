@@ -11,7 +11,7 @@ import { Alert, IconButton, InputAdornment, TextField } from "@mui/material";
 import { ContentPaste as ContentPasteIcon } from "@mui/icons-material";
 import React, { useState } from "react";
 import { useLocalStorageString } from "./useLocalStorageString";
-import { useL10n } from "../localization";
+import { interpolateJsx, useL10n } from "../localization";
 
 export class Pixabay implements ISearchProvider {
   public label = "Pixabay";
@@ -113,21 +113,27 @@ export class Pixabay implements ISearchProvider {
             {l10n("ImageLibrary.PixabayApiKeyInstructions", "To use Pixabay, you need an API key:")}
             <ol>
               <li>
-                <a
-                  href="https://pixabay.com/accounts/login/?next=/api/docs/%2523api_search_images"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {l10n("ImageLibrary.PixabayLogIn", "Log in to Pixabay")}
-                </a>
-                {" "}{l10n("ImageLibrary.PixabayOrIfLoggedIn", "or, if already logged in,")}{" "}
-                <a
-                  href="https://pixabay.com/api/docs/#api_search_images"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {l10n("ImageLibrary.PixabayGoToApiKeyPage", "go to the API key page")}
-                </a>
+                {interpolateJsx(
+                  l10n("ImageLibrary.PixabayOrIfLoggedIn", "{0} or, if already logged in, {1}"),
+                  [
+                    <a
+                      key="login"
+                      href="https://pixabay.com/accounts/login/?next=/api/docs/%2523api_search_images"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {l10n("ImageLibrary.PixabayLogIn", "Log in to Pixabay")}
+                    </a>,
+                    <a
+                      key="api-key"
+                      href="https://pixabay.com/api/docs/#api_search_images"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {l10n("ImageLibrary.PixabayGoToApiKeyPage", "go to the API key page")}
+                    </a>,
+                  ]
+                )}
               </li>
               <li>{l10n("ImageLibrary.PixabayFindKey", 'Copy the API key shown near the top of that page, next to "Your API key:"')}</li>
               <li>{l10n("ImageLibrary.PixabayStep4", "Paste it below")}</li>

@@ -51,6 +51,8 @@ export interface IImageGalleryProps {
   initialProviderKeys?: IProviderKeysV1;
   /** Called whenever a provider key is added or changed; host should persist the bundle. */
   onProviderKeysChange?: (keys: IProviderKeysV1) => void;
+  /** Called when the user changes the search language; host should persist the new value. */
+  onLanguageChange?: (lang: string) => void;
   /** Primary color for buttons, selection highlights, links, etc. (hex string, e.g. "#1d94a4"). */
   primaryColor?: string;
   /** Called once at mount with all gallery string IDs and their English defaults.
@@ -377,6 +379,7 @@ function App(props: IImageGalleryProps) {
                   numColumns={numColumns}
                   initialSearchTerm={searchTerm}
                   onSearchTermChange={setSearchTerm}
+                  onLanguageChange={props.onLanguageChange}
                 />
                 <Divider orientation="vertical" flexItem />
                 {selectedImage ? (
