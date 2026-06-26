@@ -47,7 +47,6 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.ImageCount": "{0} images",
   "ImageLibrary.MoreInfo": "More info",
   "ImageLibrary.NoMatchesFound": "No matches found",
-  "ImageLibrary.NotReady": "Not Ready",
   "ImageLibrary.OnlineSources": "Online Sources",
   "ImageLibrary.OpenFile": "Open File...",
   "ImageLibrary.OpenVerseDescription":

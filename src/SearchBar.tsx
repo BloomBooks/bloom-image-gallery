@@ -87,7 +87,7 @@ export const SearchBar: React.FunctionComponent<{
                 size="small"
                 value={searchTerm}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && searchTerm.trim()) {
                     props.onSearch(searchTerm, searchLanguage);
                   }
                 }}
@@ -100,6 +100,7 @@ export const SearchBar: React.FunctionComponent<{
               <Button
                 variant="contained"
                 size="small"
+                disabled={!searchTerm.trim()}
                 onClick={() => props.onSearch(searchTerm, searchLanguage)}
                 startIcon={
                   <SearchIcon
