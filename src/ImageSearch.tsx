@@ -84,11 +84,15 @@ export const ImageSearch: React.FunctionComponent<{
     }
   }, [props.provider, props.lang]);
 
+  const colCount = props.numColumns ?? 3;
+  const gridMinWidth = colCount * 140 + Math.max(0, colCount - 1) * 8 + 17;
+
   return (
     <div
       css={css`
         flex-grow: 0;
         flex-shrink: 0;
+        min-width: ${gridMinWidth}px;
       `}
     >
       <div
@@ -117,17 +121,6 @@ export const ImageSearch: React.FunctionComponent<{
         >
           {props.provider.label}
         </h2>
-        {!props.provider.isReady && (
-          <span
-            css={css`
-              margin-left: 10px;
-              color: #666;
-              font-style: italic;
-            `}
-          >
-            {l10n("ImageLibrary.NotReady", "Not Ready")}
-          </span>
-        )}
       </div>
       <div>
         <SearchBar
@@ -157,7 +150,7 @@ export const ImageSearch: React.FunctionComponent<{
           </span>
         )}
       </div>
-      {searchResult?.images && searchResult.images.length > 0 && (
+      {(isLoading || (searchResult && searchResult.images.length > 0)) && (
         <SearchResults
           images={searchResult?.images || []}
           handleSelection={props.handleSelection}
