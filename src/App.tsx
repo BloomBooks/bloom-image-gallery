@@ -37,8 +37,9 @@ const drawerWidth = 200;
 export interface IImageGalleryProps {
   /** Called when the user confirms an image selection; host should insert the image. */
   onConfirmSelection: (image: IImage) => void;
-  /** Called when the user clicks the button to open a file; host opens a file picker and returns the chosen image. */
-  onPickLocalFile: () => Promise<IImage | undefined>;
+  /** Called when the user clicks the button to open a file; host opens a file picker and returns the chosen image.
+   *  If omitted, a browser file-input dialog is used as a fallback. */
+  onPickLocalFile?: () => Promise<IImage | undefined>;
   /** Called when the user cancels without selecting an image. */
   onCancel?: () => void;
   /** Base URL for the local image collections service (the path up to but not including
@@ -147,6 +148,39 @@ function App(props: IImageGalleryProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [numColumns, setNumColumns] = useState(3);
   const mainBoxRef = useRef<HTMLElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePickLocalFile = async () => {
+    let image: IImage | undefined;
+    if (props.onPickLocalFile) {
+      image = await props.onPickLocalFile();
+    } else {
+      image = await new Promise<IImage | undefined>((resolve) => {
+        const input = fileInputRef.current!;
+        const onchange = (e: Event) => {
+          input.removeEventListener("change", onchange);
+          const file = (e.target as HTMLInputElement).files?.[0];
+          if (!file) { resolve(undefined); return; }
+          const objectUrl = URL.createObjectURL(file);
+          resolve({
+            thumbnailUrl: objectUrl,
+            reasonableSizeUrl: objectUrl,
+            url: objectUrl,
+            size: file.size,
+            type: file.type,
+            localPath: file.name,
+          });
+          input.value = "";
+        };
+        input.addEventListener("change", onchange);
+        input.click();
+      });
+    }
+    if (image) {
+      setSelectedProvider(undefined);
+      setSelectedImage(image);
+    }
+  };
 
   const updateColumns = useCallback((mainBoxWidth: number) => {
     // Available width after the content div's 20px padding on each side
@@ -174,6 +208,8 @@ function App(props: IImageGalleryProps) {
     updateColumns(mainBoxRef.current.getBoundingClientRect().width);
     return () => observer.disconnect();
   }, [updateColumns]);
+
+  const gridMinWidth = numColumns * 140 + Math.max(0, numColumns - 1) * 8 + 17;
 
   const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
     undefined
@@ -253,15 +289,16 @@ function App(props: IImageGalleryProps) {
               </ListItem>
               <ListItem>
                 {/* a Material UI contained button with a folder icon */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                />
                 <Button
                   variant={selectedProvider ? "outlined" : "contained"}
                   startIcon={<FolderIcon />}
-                  onClick={async () => {
-                    const image = await props.onPickLocalFile();
-                    if (image) {
-                      setSelectedImage(image);
-                    }
-                  }}
+                  onClick={handlePickLocalFile}
                 >
                   {l10n("ImageLibrary.OpenFile", "Open File...")}
                 </Button>
@@ -354,7 +391,7 @@ function App(props: IImageGalleryProps) {
             height: 100%;
           `}
         >
-          {selectedProvider && (
+          {(selectedProvider || selectedImage) && (
             <div
               css={css`
                 display: flex;
@@ -371,22 +408,32 @@ function App(props: IImageGalleryProps) {
                   min-height: 0;
                 `}
               >
-                <ImageSearch
-                  key={`${selectedProvider?.id}-${providerVersion}`}
-                  provider={selectedProvider}
-                  lang={props.lang ?? "en"}
-                  handleSelection={setSelectedImage}
-                  numColumns={numColumns}
-                  initialSearchTerm={searchTerm}
-                  onSearchTermChange={setSearchTerm}
-                  onLanguageChange={props.onLanguageChange}
-                />
+                <div
+                  css={css`
+                    flex-grow: 0;
+                    flex-shrink: 0;
+                    min-width: ${gridMinWidth}px;
+                  `}
+                >
+                  {selectedProvider && (
+                    <ImageSearch
+                      key={`${selectedProvider.id}-${providerVersion}`}
+                      provider={selectedProvider}
+                      lang={props.lang ?? "en"}
+                      handleSelection={setSelectedImage}
+                      numColumns={numColumns}
+                      initialSearchTerm={searchTerm}
+                      onSearchTermChange={setSearchTerm}
+                      onLanguageChange={props.onLanguageChange}
+                    />
+                  )}
+                </div>
                 <Divider orientation="vertical" flexItem />
                 {selectedImage ? (
                   <ImageDetails image={selectedImage} />
-                ) : (
+                ) : selectedProvider ? (
                   <About key={selectedProvider.id} provider={selectedProvider} />
-                )}
+                ) : null}
               </div>
               <div
                 css={css`
