@@ -1,6 +1,6 @@
 /// <reference types="@types/wicg-file-system-access" />
 import { css } from "@emotion/react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   ALL_GALLERY_STRINGS,
   LocalizationContext,
@@ -13,11 +13,10 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
   ListItemButton,
   Button,
 } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { createTheme, ThemeProvider, alpha } from "@mui/material/styles";
 import { Folder as FolderIcon } from "@mui/icons-material";
 import { ImageDetails } from "./ImageDetails";
 import { ImageSearch, About } from "./ImageSearch";
@@ -32,7 +31,7 @@ import { basePathPrefix, port } from "../common/locations";
 import axios from "axios";
 import { IProviderKeysV1 } from "../common/bloomMediaMetadata";
 
-const drawerWidth = 200;
+const drawerWidth = 216;
 
 export interface IImageGalleryProps {
   /** Called when the user confirms an image selection; host should insert the image. */
@@ -146,8 +145,6 @@ function App(props: IImageGalleryProps) {
   }, []); // run once on mount; UI language changes require a Bloom restart
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [numColumns, setNumColumns] = useState(3);
-  const mainBoxRef = useRef<HTMLElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handlePickLocalFile = async () => {
@@ -182,35 +179,6 @@ function App(props: IImageGalleryProps) {
     }
   };
 
-  const updateColumns = useCallback((mainBoxWidth: number) => {
-    // Available width after the content div's 20px padding on each side
-    const available = mainBoxWidth - 40;
-    // Width of the scrollable search grid for a given column count
-    const colWidth = 140, gapWidth = 8, scrollbarWidth = 17;
-    const w = (cols: number) =>
-      cols * colWidth + Math.max(0, cols - 1) * gapWidth + scrollbarWidth;
-    // Keep at least 400px for the image-details panel; reduce columns if needed
-    const spacing = 20; // divider + ImageDetails margin-left
-    const minDetails = 400;
-    setNumColumns(
-      available - w(3) - spacing >= minDetails ? 3
-        : available - w(2) - spacing >= minDetails ? 2
-        : 1
-    );
-  }, []);
-
-  useEffect(() => {
-    if (!mainBoxRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      updateColumns(entries[0].contentRect.width);
-    });
-    observer.observe(mainBoxRef.current);
-    updateColumns(mainBoxRef.current.getBoundingClientRect().width);
-    return () => observer.disconnect();
-  }, [updateColumns]);
-
-  const gridMinWidth = numColumns * 140 + Math.max(0, numColumns - 1) * 8 + 17;
-
   const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
     undefined
   );
@@ -226,23 +194,6 @@ function App(props: IImageGalleryProps) {
     setSelectedProvider(provider);
   }
 
-  const sidebarHeadingStyle = css`
-    margin-top: 20px;
-    padding-bottom: 0;
-    span {
-      color: #555;
-      font-size: 14px;
-    }
-  `;
-
-  // The first heading has no section above it, so it uses a smaller top margin
-  // that aligns its text with the source icon in the adjacent pane (which sits
-  // at the pane's 20px top padding).
-  const firstSidebarHeadingStyle = css`
-    ${sidebarHeadingStyle}
-    margin-top: 8px;
-  `;
-
   const theme = createTheme(
     props.primaryColor
       ? {
@@ -254,6 +205,60 @@ function App(props: IImageGalleryProps) {
       : {}
   );
   const primaryColor = theme.palette.primary.main;
+  const primaryDark = theme.palette.primary.dark;
+
+  // Small grey uppercase section label in the sidebar.
+  const sidebarHeadingStyle = css`
+    margin-top: 18px;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 6px;
+    padding-right: 6px;
+    span {
+      color: ${theme.palette.text.secondary};
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+  `;
+
+  // The first heading has no section above it, so it uses a smaller top margin.
+  const firstSidebarHeadingStyle = css`
+    ${sidebarHeadingStyle}
+    margin-top: 4px;
+  `;
+
+  // A source/collection row: plain with a subtle hover tint, and a soft
+  // primary-tinted rounded "pill" (with primary text) when selected. The
+  // sidebar's own horizontal padding gives the pill its inset from the edges.
+  const sourceItemSx = {
+    borderRadius: "8px",
+    marginBottom: "2px",
+    paddingLeft: "12px",
+    paddingRight: "12px",
+    "&:hover": { backgroundColor: "rgba(0, 0, 0, 0.045)" },
+    "&.Mui-selected": {
+      backgroundColor: alpha(primaryColor, 0.12),
+      color: primaryDark,
+      fontWeight: 500,
+      "&:hover": { backgroundColor: alpha(primaryColor, 0.18) },
+    },
+  };
+
+  // The right-hand pane (attribution when an image is selected, notices
+  // otherwise): a fixed-width, full-height column with a soft grey background.
+  const detailPaneStyle = css`
+    width: 340px;
+    flex: none;
+    overflow-y: auto;
+    border-left: 1px solid ${theme.palette.divider};
+    background-color: ${theme.palette.grey[50]};
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  `;
 
   return (
     <LocalizationContext.Provider value={l10n}>
@@ -274,7 +279,9 @@ function App(props: IImageGalleryProps) {
             flex-shrink: 0;
             height: 100%;
             overflow: auto;
-            border-right: 1px solid rgba(0, 0, 0, 0.12);
+            padding: 6px 8px;
+            box-sizing: border-box;
+            border-right: 1px solid ${theme.palette.divider};
           `}
           onClick={(e) => {
             // Only clear if clicking directly on the div, not its children
@@ -284,11 +291,11 @@ function App(props: IImageGalleryProps) {
           }}
         >
             <List disablePadding>
-              <ListItem css={firstSidebarHeadingStyle}>
+              <ListItem disableGutters css={firstSidebarHeadingStyle}>
                 <ListItemText primary={l10n("ImageLibrary.ThisComputer", "This Computer")} />
               </ListItem>
-              <ListItem>
-                {/* a Material UI contained button with a folder icon */}
+              <ListItem disableGutters sx={{ px: "6px", pt: "2px" }}>
+                {/* a Material UI button with a folder icon */}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -296,6 +303,7 @@ function App(props: IImageGalleryProps) {
                   style={{ display: "none" }}
                 />
                 <Button
+                  fullWidth
                   variant={selectedProvider ? "outlined" : "contained"}
                   startIcon={<FolderIcon />}
                   onClick={handlePickLocalFile}
@@ -304,7 +312,7 @@ function App(props: IImageGalleryProps) {
                 </Button>
               </ListItem>
 
-              <ListItem css={sidebarHeadingStyle}>
+              <ListItem disableGutters css={sidebarHeadingStyle}>
                 <ListItemText primary={l10n("ImageLibrary.CollectionsOnThisComputer", "Collections on this Computer")} />
               </ListItem>
               {imageProviders
@@ -316,6 +324,7 @@ function App(props: IImageGalleryProps) {
                     selected={provider === selectedProvider}
                     dense
                     sx={{
+                      ...sourceItemSx,
                       position: "relative",
                       // Add a semi-transparent overlay to show that it's not ready
                       "&::after": !provider.isReady
@@ -332,7 +341,7 @@ function App(props: IImageGalleryProps) {
                     }}
                   >
                     {provider.logo && (
-                      <ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 34 }}>
                         <img src={provider.logo} width={24} />
                       </ListItemIcon>
                     )}
@@ -340,10 +349,9 @@ function App(props: IImageGalleryProps) {
                   </ListItemButton>
                 ))}
 
-              <ListItem>
+              <ListItem disableGutters css={sidebarHeadingStyle}>
                 <ListItemText
                   primary={l10n("ImageLibrary.OnlineSources", "Online Sources")}
-                  css={sidebarHeadingStyle}
                 />
               </ListItem>
               {imageProviders
@@ -355,6 +363,7 @@ function App(props: IImageGalleryProps) {
                     selected={provider === selectedProvider}
                     dense
                     sx={{
+                      ...sourceItemSx,
                       position: "relative",
                       "&::after": !provider.isReady
                         ? {
@@ -371,7 +380,7 @@ function App(props: IImageGalleryProps) {
                     }}
                   >
                     {provider.logo && (
-                      <ListItemIcon>
+                      <ListItemIcon sx={{ minWidth: 34 }}>
                         <img src={provider.logo} width={24} />
                       </ListItemIcon>
                     )}
@@ -382,7 +391,6 @@ function App(props: IImageGalleryProps) {
         </div>
         <Box
           component="main"
-          ref={mainBoxRef}
           css={css`
             display: flex;
             flex-direction: column;
@@ -397,7 +405,6 @@ function App(props: IImageGalleryProps) {
                 display: flex;
                 flex-direction: column;
                 height: 100%;
-                padding: 20px;
               `}
             >
               <div
@@ -410,9 +417,11 @@ function App(props: IImageGalleryProps) {
               >
                 <div
                   css={css`
-                    flex-grow: 0;
-                    flex-shrink: 0;
-                    min-width: ${gridMinWidth}px;
+                    flex: 1;
+                    min-width: 0;
+                    display: flex;
+                    flex-direction: column;
+                    padding: 20px 20px 0;
                   `}
                 >
                   {selectedProvider && (
@@ -421,19 +430,39 @@ function App(props: IImageGalleryProps) {
                       provider={selectedProvider}
                       lang={props.lang ?? "en"}
                       handleSelection={setSelectedImage}
-                      numColumns={numColumns}
+                      selectedImageKey={selectedImage?.thumbnailUrl}
                       initialSearchTerm={searchTerm}
                       onSearchTermChange={setSearchTerm}
                       onLanguageChange={props.onLanguageChange}
                     />
                   )}
                 </div>
-                <Divider orientation="vertical" flexItem />
-                {selectedImage ? (
-                  <ImageDetails image={selectedImage} />
-                ) : selectedProvider ? (
-                  <About key={selectedProvider.id} provider={selectedProvider} />
-                ) : null}
+                <div css={detailPaneStyle}>
+                  {selectedImage ? (
+                    <ImageDetails image={selectedImage} />
+                  ) : selectedProvider ? (
+                    <>
+                      <About
+                        key={selectedProvider.id}
+                        provider={selectedProvider}
+                      />
+                      <div
+                        css={css`
+                          margin-top: auto;
+                          text-align: center;
+                          color: ${theme.palette.text.disabled};
+                          font-size: 13.5px;
+                          padding: 20px;
+                        `}
+                      >
+                        {l10n(
+                          "ImageLibrary.SelectImagePrompt",
+                          "Select an image to see its details and license."
+                        )}
+                      </div>
+                    </>
+                  ) : null}
+                </div>
               </div>
               <div
                 css={css`
@@ -441,7 +470,8 @@ function App(props: IImageGalleryProps) {
                   flex-direction: row;
                   justify-content: flex-end;
                   gap: 8px;
-                  padding-top: 12px;
+                  padding: 14px 20px;
+                  border-top: 1px solid ${theme.palette.divider};
                 `}
               >
                 {props.onCancel && (
