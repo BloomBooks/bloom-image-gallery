@@ -97,6 +97,56 @@ export const ImageDetails: React.FunctionComponent<{
     });
   };
 
+  // Attribution rows in display order; only rows with a value render, and the
+  // border-bottom is suppressed on whichever row ends up last (not every image
+  // has a license, so the last row isn't always License).
+  const detailRows: { label: string; value: React.ReactNode }[] = [];
+  if (props.image) {
+    if (dimensions.width > 0 && dimensions.height > 0)
+      detailRows.push({
+        label: l10n("ImageLibrary.Dimensions", "Dimensions"),
+        value: `${dimensions.width} × ${dimensions.height}`,
+      });
+    if (fileSize > 0)
+      detailRows.push({
+        label: l10n("ImageLibrary.FileSize", "File size"),
+        value: getUserFriendlySize(fileSize),
+      });
+    if (props.image.creator)
+      detailRows.push({
+        label: l10n(
+          "Copyright.IllustratorOrPhotographer",
+          "Illustrator/Photographer"
+        ),
+        value: props.image.creator,
+      });
+    if (props.image.credits)
+      detailRows.push({
+        label: l10n("Common.Copyright", "Copyright"),
+        value: props.image.credits,
+      });
+    if (props.image.license)
+      detailRows.push({
+        label: l10n("ImageLibrary.License", "License"),
+        value: props.image.licenseUrl ? (
+          <a
+            href={props.image.licenseUrl}
+            target="_blank"
+            rel="noreferrer"
+            css={css`
+              color: ${theme.palette.primary.dark};
+              text-decoration: none;
+              font-weight: 500;
+            `}
+          >
+            {props.image.license}
+          </a>
+        ) : (
+          props.image.license
+        ),
+      });
+  }
+
   return (
     props.image && (
       <>
@@ -141,57 +191,14 @@ export const ImageDetails: React.FunctionComponent<{
 
         {/* Attribution: a clean two-column label/value list. */}
         <div>
-          {dimensions.width > 0 && dimensions.height > 0 && (
+          {detailRows.map((row, i) => (
             <AttrRow
-              label={l10n("ImageLibrary.Dimensions", "Dimensions")}
-              value={`${dimensions.width} × ${dimensions.height}`}
+              key={row.label}
+              label={row.label}
+              value={row.value}
+              last={i === detailRows.length - 1}
             />
-          )}
-          {fileSize > 0 && (
-            <AttrRow
-              label={l10n("ImageLibrary.FileSize", "File size")}
-              value={getUserFriendlySize(fileSize)}
-            />
-          )}
-          {props.image.creator && (
-            <AttrRow
-              label={l10n(
-                "Copyright.IllustratorOrPhotographer",
-                "Illustrator/Photographer"
-              )}
-              value={props.image.creator}
-            />
-          )}
-          {props.image.credits && (
-            <AttrRow
-              label={l10n("Common.Copyright", "Copyright")}
-              value={props.image.credits}
-            />
-          )}
-          {props.image.license && (
-            <AttrRow
-              label={l10n("ImageLibrary.License", "License")}
-              last
-              value={
-                props.image.licenseUrl ? (
-                  <a
-                    href={props.image.licenseUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    css={css`
-                      color: ${theme.palette.primary.dark};
-                      text-decoration: none;
-                      font-weight: 500;
-                    `}
-                  >
-                    {props.image.license}
-                  </a>
-                ) : (
-                  props.image.license
-                )
-              }
-            />
-          )}
+          ))}
         </div>
 
         {/* "View on <source>" external link below the list. */}

@@ -216,9 +216,10 @@ export const SearchResults: React.FunctionComponent<{
           /* scroll (not auto): always reserve the scrollbar so the width the
              ResizeObserver measures is stable. With justified rows the row
              height depends on the available width, so a scrollbar that appears
-             and disappears at an exact-fit boundary could otherwise oscillate. */
+             and disappears at an exact-fit boundary could otherwise oscillate.
+             No horizontal padding, so the initial clientWidth read matches the
+             observer's later contentRect width exactly (no first-paint jump). */
           overflow-y: scroll;
-          padding-right: 4px;
         `}
       >
         {rows.map((row, rowIndex) => (

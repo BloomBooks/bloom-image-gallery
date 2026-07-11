@@ -124,7 +124,6 @@ export const SearchBar: React.FunctionComponent<{
           value={searchLanguage}
           onChange={handleLanguageChange}
           size="small"
-          sx={{ marginLeft: 1 }}
         >
           {props.provider.languages.map((value, index) => {
             return (
