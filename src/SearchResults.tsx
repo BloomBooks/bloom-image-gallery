@@ -213,7 +213,11 @@ export const SearchResults: React.FunctionComponent<{
           flex: 1;
           min-height: 0;
           position: relative;
-          overflow-y: auto;
+          /* scroll (not auto): always reserve the scrollbar so the width the
+             ResizeObserver measures is stable. With justified rows the row
+             height depends on the available width, so a scrollbar that appears
+             and disappears at an exact-fit boundary could otherwise oscillate. */
+          overflow-y: scroll;
           padding-right: 4px;
         `}
       >
