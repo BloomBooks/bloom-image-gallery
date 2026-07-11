@@ -25,7 +25,11 @@ import { OpenVerse } from "./search-providers/OpenVerseProvider";
 // import { Europeana } from "./search-providers/EuropeanaProvider";
 // import { WikipediaProvider } from "./search-providers/WikipediaProvider";
 // import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionHistoryProvider";
-import { ISearchProvider, IImage } from "./search-providers/imageProvider";
+import {
+  ISearchProvider,
+  IImage,
+  StandardDisclaimer,
+} from "./search-providers/imageProvider";
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
 import { basePathPrefix, port } from "../common/locations";
 import axios from "axios";
@@ -439,7 +443,22 @@ function App(props: IImageGalleryProps) {
                 </div>
                 <div css={detailPaneStyle}>
                   {selectedImage ? (
-                    <ImageDetails image={selectedImage} />
+                    <>
+                      <ImageDetails image={selectedImage} />
+                      {/* Keep the general-audiences disclaimer visible while an
+                          image is selected too. Only for online sources: the text
+                          ("not from Bloom or SIL") would be false for Art of
+                          Reading or a local file. */}
+                      {selectedProvider && !selectedProvider.local && (
+                        <div
+                          css={css`
+                            margin-top: auto;
+                          `}
+                        >
+                          <StandardDisclaimer />
+                        </div>
+                      )}
+                    </>
                   ) : selectedProvider ? (
                     <>
                       <About
