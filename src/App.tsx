@@ -288,9 +288,13 @@ function App(props: IImageGalleryProps) {
             border-right: 1px solid ${theme.palette.divider};
           `}
           onClick={(e) => {
-            // Only clear if clicking directly on the div, not its children
+            // Only clear if clicking directly on the div, not its children.
+            // Clear the selected image too, otherwise a previously picked
+            // local-file image would linger in the detail pane with no way to
+            // dismiss it (the main area unmounts only when both are undefined).
             if (e.target === e.currentTarget) {
               setSelectedProvider(undefined);
+              setSelectedImage(undefined);
             }
           }}
         >

@@ -8,10 +8,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { Search as SearchIcon } from "@mui/icons-material";
-import {
-  ISearchProvider,
-  ISearchResult,
-} from "./search-providers/imageProvider";
+import { ISearchProvider } from "./search-providers/imageProvider";
 import { useL10n } from "./localization";
 
 // Used to turn language tags into human-readable names. Created once; guarded
@@ -38,10 +35,7 @@ export const SearchBar: React.FunctionComponent<{
 
   const [searchTerm, setSearchTerm] = React.useState(props.initialSearchTerm ?? "bubbles");
 
-  const handleLanguageChange = (
-    event: SelectChangeEvent<string>,
-    child: React.ReactNode
-  ) => {
+  const handleLanguageChange = (event: SelectChangeEvent<string>) => {
     const newLang = event.target.value;
     setSearchLanguage(newLang);
     props.onSearch(searchTerm, newLang);
@@ -125,7 +119,7 @@ export const SearchBar: React.FunctionComponent<{
           onChange={handleLanguageChange}
           size="small"
         >
-          {props.provider.languages.map((value, index) => {
+          {props.provider.languages.map((value) => {
             return (
               <MenuItem key={value} value={value}>
                 {getLanguageNameFromTag(value)}
