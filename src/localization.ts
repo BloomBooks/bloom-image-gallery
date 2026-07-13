@@ -40,6 +40,9 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.ArtOfReadingNotReadyInstructions":
     "To get Art of Reading images, you need to:",
   "ImageLibrary.CollectionsOnThisComputer": "Collections on this Computer",
+  "ImageLibrary.Dimensions": "Dimensions",
+  "ImageLibrary.FileSize": "File size",
+  "ImageLibrary.License": "License",
   "ImageLibrary.Disclaimer":
     "These images are not from Bloom or SIL. This tool requests images suitable for general audiences. However, we cannot guarantee that all images will be inoffensive.",
   "ImageLibrary.DownloadArtOfReading":
@@ -67,6 +70,8 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.QuitAndRerunBloom": "Quit and re-run Bloom",
   "ImageLibrary.Refresh": "Refresh",
   "ImageLibrary.Search": "Search",
+  "ImageLibrary.SelectImagePrompt":
+    "Select an image to see its details and license.",
   "ImageLibrary.Source": "Source",
   "ImageLibrary.ThisComputer": "This Computer",
   "ImageLibrary.ThisPage": "this page",
