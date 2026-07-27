@@ -46,6 +46,27 @@ export const ImageDetails: React.FunctionComponent<{
     }
   }, [props.image]);
 
+  // Chromium refuses outright to decode an image whose pixel count times 4 bytes/pixel
+  // overflows a signed 32-bit int, firing "error" instead of "load"; decoding at a reduced
+  // size doesn't help, because the limit is checked against the natural size. Rather than
+  // leave an empty box we explain it (BL-16597).
+  const kMaxBrowserDecodablePixels = 536870911; // int32 max / 4 bytes per pixel
+
+  // Which src failed, rather than a bare "it failed" flag. Deriving the state from the
+  // current src means selecting a different image is correct on the very first render; a
+  // flag reset in an effect would paint one frame of the previous image's message first.
+  const [failedUrl, setFailedUrl] = useState<string | undefined>(undefined);
+  const currentUrl = props.image?.reasonableSizeUrl;
+  const previewFailed = !!currentUrl && failedUrl === currentUrl;
+
+  // An image is only known to be too big when the provider told us its dimensions. Any
+  // other load failure — a dead hotlink, a 404, no network — must not claim that, and in
+  // particular must not promise the image is still usable, because it isn't.
+  const tooLargeToDecode =
+    !!props.image?.width &&
+    !!props.image?.height &&
+    props.image.width * props.image.height > kMaxBrowserDecodablePixels;
+
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     if (props.image?.width && props.image?.height) return;
     const img = e.currentTarget;
@@ -91,18 +112,40 @@ export const ImageDetails: React.FunctionComponent<{
               -10px 0px;
           `}
         >
-          <img
-            id={"details-image"}
-            onLoad={handleImageLoad}
-            src={props.image.reasonableSizeUrl}
-            css={css`
-              display: block;
-              max-height: 420px;
-              max-width: 100%;
-              min-width: 0;
-              object-fit: contain;
-            `}
-          />
+          {previewFailed ? (
+            <div
+              css={css`
+                padding: 20px;
+                text-align: center;
+                color: #666;
+                font-size: 0.9em;
+              `}
+            >
+              {tooLargeToDecode
+                ? l10n(
+                    "ImageLibrary.PreviewTooLarge",
+                    "This image is too large to preview here, but you can still use it."
+                  )
+                : l10n(
+                    "ImageLibrary.PreviewUnavailable",
+                    "This image could not be previewed."
+                  )}
+            </div>
+          ) : (
+            <img
+              id={"details-image"}
+              onLoad={handleImageLoad}
+              onError={() => setFailedUrl(currentUrl)}
+              src={props.image.reasonableSizeUrl}
+              css={css`
+                display: block;
+                max-height: 420px;
+                max-width: 100%;
+                min-width: 0;
+                object-fit: contain;
+              `}
+            />
+          )}
         </div>
         <div
           css={css`
