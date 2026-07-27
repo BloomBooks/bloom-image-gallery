@@ -64,6 +64,9 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.PixabayFindKey":
     'Copy the API key shown on that page, next to "Your API key:"',
   "ImageLibrary.PixabayStep4": "Paste it below",
+  "ImageLibrary.PreviewTooLarge":
+    "This image is too large to preview here, but you can still use it.",
+  "ImageLibrary.PreviewUnavailable": "This image could not be previewed.",
   "ImageLibrary.QuitAndRerunBloom": "Quit and re-run Bloom",
   "ImageLibrary.Refresh": "Refresh",
   "ImageLibrary.Search": "Search",
