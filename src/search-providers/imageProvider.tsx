@@ -36,7 +36,8 @@ export interface ISearchReport {
   language: string;
   // The total the provider claims to have, if it reports one; otherwise the number returned.
   resultCount?: number;
-  // Set instead of resultCount when the search itself failed.
+  // Set when the search failed outright, and also when a provider reported a problem
+  // alongside results it did manage to return -- so error and resultCount can both be set.
   error?: string;
 }
 

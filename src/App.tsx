@@ -64,7 +64,8 @@ export interface IImageGalleryProps {
   onSearch?: (report: ISearchReport) => void;
   /** Called when the user picks a source in the sidebar. isReady is false when that source
    *  cannot be searched yet (Pixabay before an API key is supplied), so the host can see how
-   *  many people meet that obstacle rather than only who got past it. */
+   *  many people meet that obstacle rather than only who got past it. Not called for the
+   *  source the gallery selects by itself when it opens -- only for a deliberate pick. */
   onProviderSelected?: (info: { providerId: string; isReady: boolean }) => void;
   /** Primary color for buttons, selection highlights, links, etc. (hex string, e.g. "#1d94a4"). */
   primaryColor?: string;
