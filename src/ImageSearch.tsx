@@ -5,6 +5,7 @@ import { SearchResults } from "./SearchResults";
 import {
   ISearchProvider,
   IImage,
+  ISearchReport,
   ISearchResult,
 } from "./search-providers/imageProvider";
 import { SearchBar } from "./SearchBar";
@@ -17,6 +18,8 @@ export const ImageSearch: React.FunctionComponent<{
   initialSearchTerm?: string;
   onSearchTermChange?: (term: string) => void;
   onLanguageChange?: (lang: string) => void;
+  // Called once per search (not per page) with what was searched for and what came back.
+  onSearch?: (report: ISearchReport) => void;
 }> = (props) => {
   const l10n = useL10n();
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
@@ -28,6 +31,18 @@ export const ImageSearch: React.FunctionComponent<{
   const [previousSearchTerm, setPreviousSearchTerm] = React.useState("");
   const [previousLanguage, setPreviousLanguage] = React.useState(props.lang);
 
+  // Stamp each image with the provider it came from, so that the host can report where a chosen
+  // image was found instead of having to guess from its URL.
+  function withProviderId(images: IImage[]): IImage[] {
+    return images.map((image) => ({ ...image, providerId: props.provider.id }));
+  }
+
+  // Tell the host what a search did, unless this "search" was really just loading a provider
+  // that has no query (the browser-extension queue), where there is no term worth reporting.
+  function reportSearch(report: ISearchReport): void {
+    if (!props.provider.justAListNoQuery) props.onSearch?.(report);
+  }
+
   function searchForImages(term: string, language: string): void {
     setIsLoading(true);
     setLastRetrievedPageZeroIndexed(0);
@@ -37,13 +52,26 @@ export const ImageSearch: React.FunctionComponent<{
       .search(term, 0, language)
       .then((result: ISearchResult) => {
         props.handleSelection(undefined);
-        setSearchResult(result);
+        setSearchResult({ ...result, images: withProviderId(result.images) });
         setIsLoading(false);
+        reportSearch({
+          term,
+          providerId: props.provider.id,
+          language,
+          resultCount: result.totalImages ?? result.images.length,
+          error: result.error,
+        });
       })
       .catch((reason) => {
         console.log(`Image search failed: ${reason}`);
         setSearchResult(undefined);
         setIsLoading(false);
+        reportSearch({
+          term,
+          providerId: props.provider.id,
+          language,
+          error: `${reason}`,
+        });
       });
   }
 
@@ -56,7 +84,7 @@ export const ImageSearch: React.FunctionComponent<{
         .search(previousSearchTerm, nextPage, previousLanguage)
         .then((result: ISearchResult) => {
           setSearchResult({
-            images: [...searchResult.images, ...result.images],
+            images: [...searchResult.images, ...withProviderId(result.images)],
             error: result.error,
           });
           setLastRetrievedPageZeroIndexed(nextPage);
