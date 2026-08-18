@@ -47,10 +47,16 @@ export const ImageSearch: React.FunctionComponent<{
   // user sees.
   function reportSearch(report: ISearchReport): void {
     if (props.provider.justAListNoQuery) return;
-    try {
-      props.onSearch?.(report);
-    } catch (error) {
+    const complain = (error: unknown) =>
       console.log(`onSearch host callback failed: ${error}`);
+    try {
+      // Promise.resolve covers a host that made onSearch async: the type says it returns void,
+      // but nothing stops it, and a rejected promise we did not catch would surface as an
+      // unhandled rejection in the host runtime -- which in Bloom means a problem report shown
+      // to the user, over analytics. Between the two, every way this can fail is contained.
+      void Promise.resolve(props.onSearch?.(report)).catch(complain);
+    } catch (error) {
+      complain(error);
     }
   }
 
