@@ -39,8 +39,19 @@ export const ImageSearch: React.FunctionComponent<{
 
   // Tell the host what a search did, unless this "search" was really just loading a provider
   // that has no query (the browser-extension queue), where there is no term worth reporting.
+  //
+  // The host callback is isolated on purpose. It is called from inside the search promise
+  // chain, so without this a host whose analytics code threw would land in the chain's catch
+  // below -- wiping perfectly good results off the screen and then reporting a second, bogus
+  // "the search failed". Telling the host about a search must not be able to change what the
+  // user sees.
   function reportSearch(report: ISearchReport): void {
-    if (!props.provider.justAListNoQuery) props.onSearch?.(report);
+    if (props.provider.justAListNoQuery) return;
+    try {
+      props.onSearch?.(report);
+    } catch (error) {
+      console.log(`onSearch host callback failed: ${error}`);
+    }
   }
 
   function searchForImages(term: string, language: string): void {
