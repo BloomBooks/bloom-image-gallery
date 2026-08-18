@@ -237,11 +237,17 @@ function App(props: IImageGalleryProps) {
   }, [imageProviders]);
 
   function handleSelectCollection(provider: ISearchProvider) {
+    // Only report an actual CHANGE of source. Clicking the source that is already selected is
+    // a no-op for the user, and reporting it would let one person clicking Pixabay three times
+    // look like three people meeting its "you need an API key" wall.
+    const changed = provider !== selectedProvider;
     setSelectedProvider(provider);
-    props.onProviderSelected?.({
-      providerId: provider.id,
-      isReady: provider.isReady,
-    });
+    if (changed) {
+      props.onProviderSelected?.({
+        providerId: provider.id,
+        isReady: provider.isReady,
+      });
+    }
   }
 
   const sidebarHeadingStyle = css`
