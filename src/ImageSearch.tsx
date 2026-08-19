@@ -102,6 +102,12 @@ export const ImageSearch: React.FunctionComponent<{
         .then((result: ISearchResult) => {
           setSearchResult({
             images: [...searchResult.images, ...withProviderId(result.images)],
+            // Keep the count. Leaving it out here is what used to make the "N images" label
+            // vanish the moment the user scrolled far enough to load a second page: this
+            // replaces the whole result object, so an absent totalImages reads as "this
+            // provider does not report a total". Providers that do report one send it with
+            // every page; falling back to the total we already had covers any that do not.
+            totalImages: result.totalImages ?? searchResult.totalImages,
             error: result.error,
           });
           setLastRetrievedPageZeroIndexed(nextPage);
