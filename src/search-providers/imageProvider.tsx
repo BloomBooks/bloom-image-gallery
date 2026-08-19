@@ -30,6 +30,13 @@ export interface ISearchResult {
 // What the host is told about a completed search, so that it can record what people search
 // for, which source they sent it to, and how much came back. Reported once per search, not
 // once per page of results.
+//
+// Deliberately, a search IS reported again when the user keeps the term and changes only the
+// language: the source is queried afresh and hands back different pictures, so it is another
+// search by any measure the host cares about. It does mean one idea ("dog", tried in three
+// languages) produces several reports, so a count of these is a count of queries, not of
+// distinct things people looked for. The language is in every report, which is what lets
+// anyone analysing them tell the two apart.
 export interface ISearchReport {
   term: string;
   providerId: string;
