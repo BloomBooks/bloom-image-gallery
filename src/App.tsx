@@ -26,7 +26,11 @@ import { OpenVerse } from "./search-providers/OpenVerseProvider";
 // import { Europeana } from "./search-providers/EuropeanaProvider";
 // import { WikipediaProvider } from "./search-providers/WikipediaProvider";
 // import { BrowserExtensionQueueProvider } from "./search-providers/BrowserExtensionHistoryProvider";
-import { ISearchProvider, IImage } from "./search-providers/imageProvider";
+import {
+  ISearchProvider,
+  IImage,
+  ISearchReport,
+} from "./search-providers/imageProvider";
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
 import { basePathPrefix, port } from "../common/locations";
 import axios from "axios";
@@ -54,6 +58,15 @@ export interface IImageGalleryProps {
   onProviderKeysChange?: (keys: IProviderKeysV1) => void;
   /** Called when the user changes the search language; host should persist the new value. */
   onLanguageChange?: (lang: string) => void;
+  /** Called once per search (not per page of results) with the term, the provider it went to,
+   *  and how many images came back. Lets the host record what people look for and, together
+   *  with onConfirmSelection/onCancel, whether they found something they could use. */
+  onSearch?: (report: ISearchReport) => void;
+  /** Called when the user picks a source in the sidebar. isReady is false when that source
+   *  cannot be searched yet (Pixabay before an API key is supplied), so the host can see how
+   *  many people meet that obstacle rather than only who got past it. Not called for the
+   *  source the gallery selects by itself when it opens -- only for a deliberate pick. */
+  onProviderSelected?: (info: { providerId: string; isReady: boolean }) => void;
   /** Primary color for buttons, selection highlights, links, etc. (hex string, e.g. "#1d94a4"). */
   primaryColor?: string;
   /** Called once at mount with all gallery string IDs and their English defaults.
@@ -178,7 +191,8 @@ function App(props: IImageGalleryProps) {
     }
     if (image) {
       setSelectedProvider(undefined);
-      setSelectedImage(image);
+      // However the file was chosen -- by the host or by our fallback input -- it came off disk.
+      setSelectedImage({ ...image, providerId: image.providerId ?? "local-disk" });
     }
   };
 
@@ -223,7 +237,17 @@ function App(props: IImageGalleryProps) {
   }, [imageProviders]);
 
   function handleSelectCollection(provider: ISearchProvider) {
+    // Only report an actual CHANGE of source. Clicking the source that is already selected is
+    // a no-op for the user, and reporting it would let one person clicking Pixabay three times
+    // look like three people meeting its "you need an API key" wall.
+    const changed = provider !== selectedProvider;
     setSelectedProvider(provider);
+    if (changed) {
+      props.onProviderSelected?.({
+        providerId: provider.id,
+        isReady: provider.isReady,
+      });
+    }
   }
 
   const sidebarHeadingStyle = css`
@@ -425,6 +449,7 @@ function App(props: IImageGalleryProps) {
                       initialSearchTerm={searchTerm}
                       onSearchTermChange={setSearchTerm}
                       onLanguageChange={props.onLanguageChange}
+                      onSearch={props.onSearch}
                     />
                   )}
                 </div>

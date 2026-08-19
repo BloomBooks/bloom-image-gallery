@@ -5,6 +5,7 @@ import { SearchResults } from "./SearchResults";
 import {
   ISearchProvider,
   IImage,
+  ISearchReport,
   ISearchResult,
 } from "./search-providers/imageProvider";
 import { SearchBar } from "./SearchBar";
@@ -17,6 +18,8 @@ export const ImageSearch: React.FunctionComponent<{
   initialSearchTerm?: string;
   onSearchTermChange?: (term: string) => void;
   onLanguageChange?: (lang: string) => void;
+  // Called once per search (not per page) with what was searched for and what came back.
+  onSearch?: (report: ISearchReport) => void;
 }> = (props) => {
   const l10n = useL10n();
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
@@ -28,6 +31,35 @@ export const ImageSearch: React.FunctionComponent<{
   const [previousSearchTerm, setPreviousSearchTerm] = React.useState("");
   const [previousLanguage, setPreviousLanguage] = React.useState(props.lang);
 
+  // Stamp each image with the provider it came from, so that the host can report where a chosen
+  // image was found instead of having to guess from its URL.
+  function withProviderId(images: IImage[]): IImage[] {
+    return images.map((image) => ({ ...image, providerId: props.provider.id }));
+  }
+
+  // Tell the host what a search did, unless this "search" was really just loading a provider
+  // that has no query (the browser-extension queue), where there is no term worth reporting.
+  //
+  // The host callback is isolated on purpose. It is called from inside the search promise
+  // chain, so without this a host whose analytics code threw would land in the chain's catch
+  // below -- wiping perfectly good results off the screen and then reporting a second, bogus
+  // "the search failed". Telling the host about a search must not be able to change what the
+  // user sees.
+  function reportSearch(report: ISearchReport): void {
+    if (props.provider.justAListNoQuery) return;
+    const complain = (error: unknown) =>
+      console.log(`onSearch host callback failed: ${error}`);
+    try {
+      // Promise.resolve covers a host that made onSearch async: the type says it returns void,
+      // but nothing stops it, and a rejected promise we did not catch would surface as an
+      // unhandled rejection in the host runtime -- which in Bloom means a problem report shown
+      // to the user, over analytics. Between the two, every way this can fail is contained.
+      void Promise.resolve(props.onSearch?.(report)).catch(complain);
+    } catch (error) {
+      complain(error);
+    }
+  }
+
   function searchForImages(term: string, language: string): void {
     setIsLoading(true);
     setLastRetrievedPageZeroIndexed(0);
@@ -37,13 +69,26 @@ export const ImageSearch: React.FunctionComponent<{
       .search(term, 0, language)
       .then((result: ISearchResult) => {
         props.handleSelection(undefined);
-        setSearchResult(result);
+        setSearchResult({ ...result, images: withProviderId(result.images) });
         setIsLoading(false);
+        reportSearch({
+          term,
+          providerId: props.provider.id,
+          language,
+          resultCount: result.totalImages ?? result.images.length,
+          error: result.error,
+        });
       })
       .catch((reason) => {
         console.log(`Image search failed: ${reason}`);
         setSearchResult(undefined);
         setIsLoading(false);
+        reportSearch({
+          term,
+          providerId: props.provider.id,
+          language,
+          error: `${reason}`,
+        });
       });
   }
 
@@ -56,7 +101,13 @@ export const ImageSearch: React.FunctionComponent<{
         .search(previousSearchTerm, nextPage, previousLanguage)
         .then((result: ISearchResult) => {
           setSearchResult({
-            images: [...searchResult.images, ...result.images],
+            images: [...searchResult.images, ...withProviderId(result.images)],
+            // Keep the count. Leaving it out here is what used to make the "N images" label
+            // vanish the moment the user scrolled far enough to load a second page: this
+            // replaces the whole result object, so an absent totalImages reads as "this
+            // provider does not report a total". Providers that do report one send it with
+            // every page; falling back to the total we already had covers any that do not.
+            totalImages: result.totalImages ?? searchResult.totalImages,
             error: result.error,
           });
           setLastRetrievedPageZeroIndexed(nextPage);
