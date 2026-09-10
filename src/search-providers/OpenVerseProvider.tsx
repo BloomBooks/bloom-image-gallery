@@ -11,7 +11,7 @@ import { Alert } from "@mui/material";
 import React from "react";
 import { useL10n } from "../localization";
 export class OpenVerse implements ISearchProvider {
-  public label = "OpenVerse";
+  public label = "Openverse";
   public id = "openverse";
   public logo = logo;
   public isReady = true;
@@ -103,7 +103,7 @@ export class OpenVerse implements ISearchProvider {
       console.error("OpenVerse search failed:", error);
       return {
         images: [],
-        error: "Failed to fetch images from OpenVerse",
+        error: "Failed to fetch images from Openverse",
       };
     }
   }
@@ -113,7 +113,7 @@ export class OpenVerse implements ISearchProvider {
     const l10n = useL10n();
     return (
       <>
-        <ProviderSummary title={l10n("ImageLibrary.AboutOpenVerse", "About OpenVerse")}>
+        <ProviderSummary title={l10n("ImageLibrary.AboutOpenVerse", "About Openverse")}>
           {l10n("ImageLibrary.OpenVerseDescription", "Openverse searches multiple public repositories for CC-licensed and public domain works.")}{" "}
           <a href="https://openverse.org/about">{l10n("ImageLibrary.MoreInfo", "More info")}</a>
         </ProviderSummary>

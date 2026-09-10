@@ -33,7 +33,7 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
 
   // Image library strings
   "ImageLibrary.AboutArtOfReading": "About Art of Reading",
-  "ImageLibrary.AboutOpenVerse": "About OpenVerse",
+  "ImageLibrary.AboutOpenVerse": "About Openverse",
   "ImageLibrary.AboutPixabay": "About Pixabay",
   "ImageLibrary.ArtOfReadingDescription":
     "International Illustrations: Art of Reading 3.0 is a collection of over 11,000 images. The collection is designed for use in the preparation of a wide variety of literacy and educational materials, such as shellbooks, primers, news-sheets, posters, and other culturally appropriate materials. These images are black and white line drawings collected from SIL and national artists from around the world.",
