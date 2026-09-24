@@ -24,6 +24,8 @@ export default [
       "@typescript-eslint/no-empty-object-type": "warn",
       "prefer-const": "warn",
       "react/no-unknown-property": ["warn", { ignore: ["css"] }],
+      // Text written straight into JSX never reaches l10n(), so it can't be translated.
+      "react/jsx-no-literals": ["warn", { allowedStrings: ["x", ":"] }],
     },
   },
   {

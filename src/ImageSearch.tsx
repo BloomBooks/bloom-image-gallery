@@ -117,6 +117,7 @@ export const ImageSearch: React.FunctionComponent<{
           console.log(`Image search failed: ${reason}`);
           setSearchResult({
             ...searchResult,
+            // Not translated: not worth it for an error condition we never expect the user to see.
             error: `Failed to get more images: ${reason}`,
           });
           //setSearchResult(undefined);

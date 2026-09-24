@@ -124,7 +124,6 @@ export class ArtOfReadingProvider implements ISearchProvider {
   }
 
   public aboutComponent(): JSX.Element {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const l10n = useL10n();
     if (this.collection === "Art Of Reading") {
       return (

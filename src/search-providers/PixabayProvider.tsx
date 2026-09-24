@@ -48,6 +48,7 @@ export class Pixabay implements ISearchProvider {
     if (!key) {
       return {
         images: [],
+        // Not translated: not worth it for an error condition we never expect the user to see.
         error: "Could not get a Pixabay API key",
       };
     }
@@ -96,7 +97,6 @@ export class Pixabay implements ISearchProvider {
   }
 
   public aboutComponent(): JSX.Element {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const l10n = useL10n();
     const [apiKey, setApiKey] = useLocalStorageString("pixabayApiKey");
     const [keyInTextField, setKeyInTextField] = useState(
@@ -135,7 +135,7 @@ export class Pixabay implements ISearchProvider {
                   ]
                 )}
               </li>
-              <li>{l10n("ImageLibrary.PixabayFindKey", 'Copy the API key shown near the top of that page, next to "Your API key:"')}</li>
+              <li>{l10n("ImageLibrary.PixabayFindKey", 'Copy the API key shown on that page, next to "Your API key:"')}</li>
               <li>{l10n("ImageLibrary.PixabayStep4", "Paste it below")}</li>
             </ol>
           </Alert>
@@ -161,8 +161,8 @@ export class Pixabay implements ISearchProvider {
             endAdornment: (
               <InputAdornment position="end">
                 <IconButton
-                  aria-label="Paste API key from clipboard"
-                  title="Paste"
+                  aria-label={l10n("ImageLibrary.PasteApiKeyFromClipboard", "Paste API key from clipboard")}
+                  title={l10n("EditTab.PasteButton", "Paste")}
                   edge="end"
                   onClick={async () => {
                     const text = (await navigator.clipboard.readText()).trim();

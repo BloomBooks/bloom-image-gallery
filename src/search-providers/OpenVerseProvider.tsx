@@ -103,13 +103,13 @@ export class OpenVerse implements ISearchProvider {
       console.error("OpenVerse search failed:", error);
       return {
         images: [],
+        // Not translated: not worth it for an error condition we never expect the user to see.
         error: "Failed to fetch images from Openverse",
       };
     }
   }
 
   public aboutComponent(): JSX.Element {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
     const l10n = useL10n();
     return (
       <>
