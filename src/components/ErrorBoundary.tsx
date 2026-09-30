@@ -22,6 +22,7 @@ export class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <div style={{ padding: "1rem", color: "red" }}>
+          {/* eslint-disable-next-line react/jsx-no-literals -- Not translated: not worth it for an error condition we never expect the user to see. */}
           <h3>Something went wrong</h3>
           <p>{this.state.error?.message}</p>
         </div>

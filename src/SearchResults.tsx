@@ -11,12 +11,13 @@ import { IImage } from "./search-providers/imageProvider";
 import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
-const formatImageTitle = (image: IImage): string => {
+// With nothing to say, there is no tooltip at all.
+const formatImageTitle = (image: IImage): string | undefined => {
   const parts: string[] = [];
   //if (image.license) parts.push(`License: ${image.license}`);
   if (image.width && image.height) parts.push(`${image.width}×${image.height}`);
   //if (image.type) parts.push(`Type: ${image.type}`);
-  return parts.length > 0 ? parts.join(" | ") : "No metadata available";
+  return parts.length > 0 ? parts.join(" | ") : undefined;
 };
 
 const ImageListItemWithLazyLoad: React.FC<{

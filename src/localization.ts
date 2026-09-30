@@ -24,7 +24,9 @@ export function useL10n(): L10nFunc {
 }
 
 /** Every user-visible string in the gallery, keyed by localization ID with English as the default value.
- *  The gallery passes this to getLocalizations on mount to fetch all translations in one round-trip. */
+ *  The gallery passes this to getLocalizations on mount to fetch all translations in one round-trip.
+ *  localization.test.ts keeps this in step with the l10n() calls. Each ID also needs a trans-unit
+ *  in one of BloomDesktop's DistFiles/localization/en/*.xlf files, which nothing here can check. */
 export const ALL_GALLERY_STRINGS: Record<string, string> = {
   // Reused from Bloom's existing strings
   "Common.Cancel": "Cancel",
@@ -72,7 +74,6 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.Search": "Search",
   "ImageLibrary.Source": "Source",
   "ImageLibrary.ThisComputer": "This Computer",
-  "ImageLibrary.ThisPage": "this page",
   "ImageLibrary.UseThisImage": "Use this image",
 };
 
