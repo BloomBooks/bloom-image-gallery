@@ -75,8 +75,6 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   "ImageLibrary.QuitAndRerunBloom": "Quit and re-run Bloom",
   "ImageLibrary.Refresh": "Refresh",
   "ImageLibrary.Search": "Search",
-  "ImageLibrary.SelectImagePrompt":
-    "Select an image to see its details and license.",
   "ImageLibrary.Source": "Source",
   "ImageLibrary.ThisComputer": "This Computer",
   "ImageLibrary.UseThisImage": "Use this image",

@@ -486,26 +486,10 @@ function App(props: IImageGalleryProps) {
                       )}
                     </>
                   ) : selectedProvider ? (
-                    <>
-                      <About
-                        key={selectedProvider.id}
-                        provider={selectedProvider}
-                      />
-                      <div
-                        css={css`
-                          margin-top: auto;
-                          text-align: center;
-                          color: ${theme.palette.text.disabled};
-                          font-size: 13.5px;
-                          padding: 20px;
-                        `}
-                      >
-                        {l10n(
-                          "ImageLibrary.SelectImagePrompt",
-                          "Select an image to see its details and license."
-                        )}
-                      </div>
-                    </>
+                    <About
+                      key={selectedProvider.id}
+                      provider={selectedProvider}
+                    />
                   ) : null}
                 </div>
               </div>
