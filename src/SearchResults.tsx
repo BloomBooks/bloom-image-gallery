@@ -2,7 +2,7 @@ import { css } from "@emotion/react";
 import { CircularProgress, Skeleton, Alert } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { Check as CheckIcon } from "@mui/icons-material";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { IImage } from "./search-providers/imageProvider";
 import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -29,8 +29,11 @@ interface IJustifiedTile {
   height: number;
 }
 
+const aspectRatioKnown = (image: IImage): boolean =>
+  !!(image.width && image.height);
+
 const aspectRatioOf = (image: IImage): number =>
-  image.width && image.height ? image.width / image.height : kFallbackAspectRatio;
+  aspectRatioKnown(image) ? image.width! / image.height! : kFallbackAspectRatio;
 
 // Greedily pack images into rows and scale each row to fill containerWidth.
 // Because every tile's box matches its image's real aspect ratio, the thumbnails
@@ -133,9 +136,11 @@ const JustifiedTile: React.FC<{
             inset: 0;
             width: 100%;
             height: 100%;
-            /* The tile box already matches the image aspect ratio, so cover
-               fills it edge-to-edge without actually cropping the composition. */
-            object-fit: cover;
+            /* When the provider reported the image's size, the tile box matches
+               its aspect ratio and cover fills it edge-to-edge without cropping.
+               Without a size (e.g. Art of Reading) the tile is a guessed square,
+               so contain keeps the whole picture visible. */
+            object-fit: ${aspectRatioKnown(tile.image) ? "cover" : "contain"};
             display: block;
           `}
         />
@@ -202,6 +207,35 @@ export const SearchResults: React.FunctionComponent<{
       props.onBottomReached();
     }
   };
+
+  // Later pages load only when the user scrolls near the bottom, so when the rows
+  // don't fill the pane there is nothing to scroll and they would be unreachable.
+  // Ask for another page in that case, but only if the last page added images:
+  // the provider has no "no more results" signal, so an empty page is what stops it.
+  // A new search is recognized by its first image, so its count starts over.
+  const lastFillRequest = useRef({ firstImage: "", imageCount: -1 });
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (
+      !el ||
+      props.isLoading ||
+      props.error ||
+      !props.onBottomReached ||
+      containerWidth <= 0 ||
+      props.images.length === 0
+    )
+      return;
+    const firstImage = props.images[0].thumbnailUrl;
+    if (
+      firstImage === lastFillRequest.current.firstImage &&
+      props.images.length <= lastFillRequest.current.imageCount
+    )
+      return;
+    if (el.scrollHeight <= el.clientHeight * 1.5) {
+      lastFillRequest.current = { firstImage, imageCount: props.images.length };
+      props.onBottomReached();
+    }
+  });
 
   const rows = computeJustifiedRows(props.images, containerWidth);
 
