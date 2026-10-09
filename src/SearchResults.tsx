@@ -180,6 +180,8 @@ export const SearchResults: React.FunctionComponent<{
   onBottomReached?: () => void;
   // thumbnailUrl of the currently selected image, so its tile gets the ring/badge
   selectedImageKey?: string;
+  // Changes with every new search (not with later pages of the same one).
+  searchId: number;
 }> = (props) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -212,8 +214,7 @@ export const SearchResults: React.FunctionComponent<{
   // don't fill the pane there is nothing to scroll and they would be unreachable.
   // Ask for another page in that case, but only if the last page added images:
   // the provider has no "no more results" signal, so an empty page is what stops it.
-  // A new search is recognized by its first image, so its count starts over.
-  const lastFillRequest = useRef({ firstImage: "", imageCount: -1 });
+  const lastFillRequest = useRef({ searchId: -1, imageCount: -1 });
   useEffect(() => {
     const el = scrollRef.current;
     if (
@@ -225,14 +226,16 @@ export const SearchResults: React.FunctionComponent<{
       props.images.length === 0
     )
       return;
-    const firstImage = props.images[0].thumbnailUrl;
     if (
-      firstImage === lastFillRequest.current.firstImage &&
+      props.searchId === lastFillRequest.current.searchId &&
       props.images.length <= lastFillRequest.current.imageCount
     )
       return;
     if (el.scrollHeight <= el.clientHeight * 1.5) {
-      lastFillRequest.current = { firstImage, imageCount: props.images.length };
+      lastFillRequest.current = {
+        searchId: props.searchId,
+        imageCount: props.images.length,
+      };
       props.onBottomReached();
     }
   });

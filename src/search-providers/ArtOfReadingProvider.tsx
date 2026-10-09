@@ -89,6 +89,9 @@ export class ArtOfReadingProvider implements ISearchProvider {
     pageZeroIndexed: number,
     language: string
   ): Promise<ISearchResult> {
+    // The local collections server returns every match at once, so there are no
+    // later pages; answering them with the same matches would show duplicates.
+    if (pageZeroIndexed > 0) return { images: [] };
     // Bloom's proxy uses exact-path routing so search params go in the query string.
     // The AOR server (direct dev mode) expects path segments.
     const searchUrl = this.throughProxy

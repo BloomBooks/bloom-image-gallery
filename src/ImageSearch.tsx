@@ -27,6 +27,8 @@ export const ImageSearch: React.FunctionComponent<{
   const theme = useTheme();
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);
+  // Counts searches, so the results grid can tell a new search from more pages of the last one.
+  const [searchCount, setSearchCount] = React.useState(0);
   const [lastRetrievedPageZeroIndexed, setLastRetrievedPageZeroIndexed] =
     React.useState(0);
 
@@ -65,6 +67,7 @@ export const ImageSearch: React.FunctionComponent<{
 
   function searchForImages(term: string, language: string): void {
     setIsLoading(true);
+    setSearchCount((count) => count + 1);
     setLastRetrievedPageZeroIndexed(0);
     // Clear existing results immediately for new searches
     setSearchResult(undefined);
@@ -217,6 +220,7 @@ export const ImageSearch: React.FunctionComponent<{
           error={searchResult?.error}
           onBottomReached={() => loadNextPage()}
           selectedImageKey={props.selectedImageKey}
+          searchId={searchCount}
         />
       )}
       {searchResult &&

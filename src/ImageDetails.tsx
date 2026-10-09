@@ -125,12 +125,12 @@ export const ImageDetails: React.FunctionComponent<{
   if (props.image) {
     if (dimensions.width > 0 && dimensions.height > 0)
       detailRows.push({
-        label: l10n("ImageLibrary.Dimensions", "Dimensions"),
+        label: l10n("Common.Dimensions", "Dimensions"),
         value: `${dimensions.width} × ${dimensions.height}`,
       });
     if (fileSize > 0)
       detailRows.push({
-        label: l10n("ImageLibrary.FileSize", "File size"),
+        label: l10n("Common.FileSize", "File size"),
         value: getUserFriendlySize(fileSize),
       });
     if (props.image.creator)
@@ -182,18 +182,6 @@ export const ImageDetails: React.FunctionComponent<{
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            border-radius: 6px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
-            background-image: linear-gradient(45deg, #eee 25%, transparent 25%),
-              linear-gradient(-45deg, #eee 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, #eee 75%),
-              linear-gradient(-45deg, transparent 75%, #eee 75%);
-            background-size: 20px 20px;
-            background-position:
-              0 0,
-              0 10px,
-              10px -10px,
-              -10px 0px;
           `}
         >
           {previewFailed ? (
@@ -227,6 +215,21 @@ export const ImageDetails: React.FunctionComponent<{
                 max-width: 100%;
                 min-width: 0;
                 object-fit: contain;
+                border-radius: 6px;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                /* The checkerboard shows only through transparent parts of the
+                   picture. It is on the img, whose box is exactly the scaled
+                   picture, so an opaque picture has no patterned margins. */
+                background-image: linear-gradient(45deg, #eee 25%, transparent 25%),
+                  linear-gradient(-45deg, #eee 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, #eee 75%),
+                  linear-gradient(-45deg, transparent 75%, #eee 75%);
+                background-size: 20px 20px;
+                background-position:
+                  0 0,
+                  0 10px,
+                  10px -10px,
+                  -10px 0px;
               `}
             />
           )}
