@@ -1,4 +1,5 @@
 import { css } from "@emotion/react";
+import { useTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { useL10n } from "./localization";
 import { SearchResults } from "./SearchResults";
@@ -14,7 +15,8 @@ export const ImageSearch: React.FunctionComponent<{
   provider: ISearchProvider;
   lang: string;
   handleSelection: (item: IImage | undefined) => void;
-  numColumns?: number;
+  // thumbnailUrl of the currently selected image, so its tile can show the ring/badge
+  selectedImageKey?: string;
   initialSearchTerm?: string;
   onSearchTermChange?: (term: string) => void;
   onLanguageChange?: (lang: string) => void;
@@ -22,8 +24,11 @@ export const ImageSearch: React.FunctionComponent<{
   onSearch?: (report: ISearchReport) => void;
 }> = (props) => {
   const l10n = useL10n();
+  const theme = useTheme();
   const [searchResult, setSearchResult] = React.useState<ISearchResult>();
   const [isLoading, setIsLoading] = React.useState(false);
+  // Counts searches, so the results grid can tell a new search from more pages of the last one.
+  const [searchCount, setSearchCount] = React.useState(0);
   const [lastRetrievedPageZeroIndexed, setLastRetrievedPageZeroIndexed] =
     React.useState(0);
 
@@ -62,6 +67,7 @@ export const ImageSearch: React.FunctionComponent<{
 
   function searchForImages(term: string, language: string): void {
     setIsLoading(true);
+    setSearchCount((count) => count + 1);
     setLastRetrievedPageZeroIndexed(0);
     // Clear existing results immediately for new searches
     setSearchResult(undefined);
@@ -136,15 +142,14 @@ export const ImageSearch: React.FunctionComponent<{
     }
   }, [props.provider, props.lang]);
 
-  const colCount = props.numColumns ?? 3;
-  const gridMinWidth = colCount * 140 + Math.max(0, colCount - 1) * 8 + 17;
-
   return (
     <div
       css={css`
-        flex-grow: 0;
-        flex-shrink: 0;
-        min-width: ${gridMinWidth}px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        min-width: 0;
       `}
     >
       <div
@@ -152,6 +157,7 @@ export const ImageSearch: React.FunctionComponent<{
           display: flex;
           flex-direction: row;
           align-items: center;
+          flex: none;
           margin-bottom: 24px;
         `}
       >
@@ -174,7 +180,11 @@ export const ImageSearch: React.FunctionComponent<{
           {props.provider.label}
         </h2>
       </div>
-      <div>
+      <div
+        css={css`
+          flex: none;
+        `}
+      >
         <SearchBar
           provider={props.provider}
           initialLanguage={props.lang}
@@ -191,15 +201,15 @@ export const ImageSearch: React.FunctionComponent<{
           }}
         />
         {searchResult?.totalImages !== undefined && (
-          <span
+          <div
             css={css`
-              margin-left: 10px;
-              color: #666;
-              font-size: 0.9em;
+              color: ${theme.palette.text.secondary};
+              font-size: 14px;
+              margin: 14px 2px 16px;
             `}
           >
             {l10n("ImageLibrary.ImageCount", "{0} images", searchResult.totalImages.toLocaleString())}
-          </span>
+          </div>
         )}
       </div>
       {(isLoading || (searchResult && searchResult.images.length > 0)) && (
@@ -209,7 +219,8 @@ export const ImageSearch: React.FunctionComponent<{
           isLoading={isLoading}
           error={searchResult?.error}
           onBottomReached={() => loadNextPage()}
-          cols={props.numColumns}
+          selectedImageKey={props.selectedImageKey}
+          searchId={searchCount}
         />
       )}
       {searchResult &&
@@ -218,8 +229,9 @@ export const ImageSearch: React.FunctionComponent<{
         !searchResult.error && (
           <div
             css={css`
+              flex: none;
               margin-top: 20px;
-              color: #666;
+              color: ${theme.palette.text.secondary};
             `}
           >
             {l10n("ImageLibrary.NoMatchesFound", "No matches found")}
@@ -235,10 +247,7 @@ export const About: React.FunctionComponent<{ provider: ISearchProvider }> = (
   return (
     <div
       css={css`
-        flex-grow: 1;
-        margin-left: 10px;
-        max-width: 500px;
-        overflow-y: auto;
+        flex: none;
       `}
     >
       {props.provider.aboutComponent && props.provider.aboutComponent()}
