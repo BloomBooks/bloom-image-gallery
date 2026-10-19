@@ -31,6 +31,9 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
   // Reused from Bloom's existing strings
   "Common.Cancel": "Cancel",
   "Common.Copyright": "Copyright",
+  "Common.Dimensions": "Dimensions",
+  "Common.FileSize": "File size",
+  "Common.License": "License",
   "EditTab.PasteButton": "Paste",
 
   // Image library strings

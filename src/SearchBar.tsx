@@ -8,10 +8,7 @@ import {
 } from "@mui/material";
 import React from "react";
 import { Search as SearchIcon } from "@mui/icons-material";
-import {
-  ISearchProvider,
-  ISearchResult,
-} from "./search-providers/imageProvider";
+import { ISearchProvider } from "./search-providers/imageProvider";
 import { useL10n } from "./localization";
 
 // Used to turn language tags into human-readable names. Created once; guarded
@@ -38,10 +35,7 @@ export const SearchBar: React.FunctionComponent<{
 
   const [searchTerm, setSearchTerm] = React.useState(props.initialSearchTerm ?? "bubbles");
 
-  const handleLanguageChange = (
-    event: SelectChangeEvent<string>,
-    child: React.ReactNode
-  ) => {
+  const handleLanguageChange = (event: SelectChangeEvent<string>) => {
     const newLang = event.target.value;
     setSearchLanguage(newLang);
     props.onSearch(searchTerm, newLang);
@@ -63,7 +57,9 @@ export const SearchBar: React.FunctionComponent<{
       css={css`
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: stretch;
+        gap: 8px;
+        width: 100%;
         margin-bottom: 10px;
       `}
     >
@@ -95,27 +91,23 @@ export const SearchBar: React.FunctionComponent<{
                   setSearchTerm(e.target.value);
                   props.onSearchTermChange?.(e.target.value);
                 }}
-                sx={{ width: "150px" }}
+                sx={{ flex: 1 }}
               ></TextField>
               <Button
                 variant="contained"
-                size="small"
+                disableElevation
+                aria-label={l10n("ImageLibrary.Search", "Search")}
                 disabled={!searchTerm.trim()}
                 onClick={() => props.onSearch(searchTerm, searchLanguage)}
-                startIcon={
-                  <SearchIcon
-                    css={css`
-                      width: 30px;
-                      height: 30px;
-                    `}
-                  />
-                }
                 css={css`
-                  span {
+                  flex: none;
+                  min-width: 56px;
+                  padding: 0;
+                  .MuiButton-startIcon {
                     margin: 0;
                   }
-                  margin-left: 5px;
                 `}
+                startIcon={<SearchIcon />}
               ></Button>
             </>
           )}
@@ -126,9 +118,8 @@ export const SearchBar: React.FunctionComponent<{
           value={searchLanguage}
           onChange={handleLanguageChange}
           size="small"
-          sx={{ marginLeft: 1 }}
         >
-          {props.provider.languages.map((value, index) => {
+          {props.provider.languages.map((value) => {
             return (
               <MenuItem key={value} value={value}>
                 {getLanguageNameFromTag(value)}

@@ -1,70 +1,174 @@
 import { css } from "@emotion/react";
-import {
-  ImageList,
-  ImageListItem,
-  CircularProgress,
-  Skeleton,
-  Alert,
-} from "@mui/material";
-import React, { useState } from "react";
+import { CircularProgress, Skeleton, Alert } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
+import { Check as CheckIcon } from "@mui/icons-material";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { IImage } from "./search-providers/imageProvider";
 import { useIntersectionObserver } from "./hooks/useIntersectionObserver";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
+// Justified-rows gallery tuning. Rows are laid out to a common target height and
+// then scaled so each row fills the full container width at the images' true
+// aspect ratios (Flickr/Unsplash style).
+const kTargetRowHeight = 150;
+const kRowGap = 10;
+// Aspect ratio (width/height) assumed for images whose provider didn't report
+// dimensions, so they still get a sensible slot instead of collapsing.
+const kFallbackAspectRatio = 1;
+
 // With nothing to say, there is no tooltip at all.
 const formatImageTitle = (image: IImage): string | undefined => {
   const parts: string[] = [];
-  //if (image.license) parts.push(`License: ${image.license}`);
   if (image.width && image.height) parts.push(`${image.width}×${image.height}`);
-  //if (image.type) parts.push(`Type: ${image.type}`);
   return parts.length > 0 ? parts.join(" | ") : undefined;
 };
 
-const ImageListItemWithLazyLoad: React.FC<{
+interface IJustifiedTile {
   image: IImage;
+  width: number;
+  height: number;
+}
+
+const aspectRatioKnown = (image: IImage): boolean =>
+  !!(image.width && image.height);
+
+const aspectRatioOf = (image: IImage): number =>
+  aspectRatioKnown(image) ? image.width! / image.height! : kFallbackAspectRatio;
+
+// Greedily pack images into rows and scale each row to fill containerWidth.
+// Because every tile's box matches its image's real aspect ratio, the thumbnails
+// fill their slots edge-to-edge with no cropping and no ragged right edge.
+function computeJustifiedRows(
+  images: IImage[],
+  containerWidth: number
+): IJustifiedTile[][] {
+  if (containerWidth <= 0 || images.length === 0) return [];
+  const rows: IJustifiedTile[][] = [];
+  let current: IImage[] = [];
+  let aspectSum = 0;
+
+  const commitRow = (isLastRow: boolean) => {
+    if (current.length === 0) return;
+    const totalGap = (current.length - 1) * kRowGap;
+    const available = containerWidth - totalGap;
+    let rowHeight = available / aspectSum;
+    // The trailing partial row would otherwise blow up a lone wide image to fill
+    // the whole width; cap it near the target height and let it be left-aligned.
+    if (isLastRow) rowHeight = Math.min(rowHeight, kTargetRowHeight * 1.4);
+    rows.push(
+      current.map((image) => ({
+        image,
+        width: rowHeight * aspectRatioOf(image),
+        height: rowHeight,
+      }))
+    );
+    current = [];
+    aspectSum = 0;
+  };
+
+  for (const image of images) {
+    current.push(image);
+    aspectSum += aspectRatioOf(image);
+    // Once the row's natural width at target height reaches the container, it's
+    // full: scaling it down to fit yields a height at or below the target.
+    const naturalWidth =
+      aspectSum * kTargetRowHeight + (current.length - 1) * kRowGap;
+    if (naturalWidth >= containerWidth) commitRow(false);
+  }
+  commitRow(true);
+  return rows;
+}
+
+const JustifiedTile: React.FC<{
+  tile: IJustifiedTile;
+  selected: boolean;
   onSelect: (image: IImage) => void;
-}> = ({ image, onSelect }) => {
+}> = ({ tile, selected, onSelect }) => {
+  const theme = useTheme();
+  const primary = theme.palette.primary.main;
   const [isLoaded, setIsLoaded] = useState(false);
-  const { elementRef, isVisible } = useIntersectionObserver<HTMLLIElement>({
+  const { elementRef, isVisible } = useIntersectionObserver<HTMLDivElement>({
     threshold: 0.1,
-    rootMargin: "50px",
+    rootMargin: "100px",
   });
 
   return (
-    <ImageListItem
+    <div
       ref={elementRef}
-      onClick={() => onSelect(image)}
-      sx={{ position: "relative" }}
-      component="li"
+      onClick={() => onSelect(tile.image)}
+      title={formatImageTitle(tile.image)}
+      css={css`
+        position: relative;
+        flex: 0 0 ${tile.width}px;
+        width: ${tile.width}px;
+        height: ${tile.height}px;
+        border-radius: 4px;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+        transition: box-shadow 0.15s, transform 0.08s;
+        outline: ${selected ? `3px solid ${primary}` : "none"};
+        outline-offset: -3px;
+        ${selected ? "z-index: 1;" : ""}
+        &:hover {
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+          transform: translateY(-1px);
+        }
+      `}
     >
       {(!isLoaded || !isVisible) && (
         <Skeleton
           variant="rectangular"
-          width={140}
-          height={140}
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 1,
-          }}
+          css={css`
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+          `}
         />
       )}
       {isVisible && (
         <img
-          src={image.thumbnailUrl}
-          width={140}
-          height={140}
-          title={formatImageTitle(image)}
+          src={tile.image.thumbnailUrl}
           onLoad={() => setIsLoaded(true)}
           css={css`
-            object-fit: scale-down;
-            position: relative;
-            z-index: ${isLoaded ? 2 : 0};
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            /* When the provider reported the image's size, the tile box matches
+               its aspect ratio and cover fills it edge-to-edge without cropping.
+               Without a size (e.g. Art of Reading) the tile is a guessed square,
+               so contain keeps the whole picture visible. */
+            object-fit: ${aspectRatioKnown(tile.image) ? "cover" : "contain"};
+            display: block;
           `}
         />
       )}
-    </ImageListItem>
+      {selected && (
+        <div
+          css={css`
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: ${primary};
+            color: #fff;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+          `}
+        >
+          <CheckIcon
+            css={css`
+              font-size: 16px;
+            `}
+          />
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -74,13 +178,26 @@ export const SearchResults: React.FunctionComponent<{
   isLoading: boolean;
   error?: string;
   onBottomReached?: () => void;
-  cols?: number;
+  // thumbnailUrl of the currently selected image, so its tile gets the ring/badge
+  selectedImageKey?: string;
+  // Changes with every new search (not with later pages of the same one).
+  searchId: number;
 }> = (props) => {
-  const colCount = props.cols ?? 3;
-  const colWidth = 140;
-  const gapWidth = 8;
-  const scrollbarWidth = 17;
-  const gridWidth = colCount * colWidth + Math.max(0, colCount - 1) * gapWidth + scrollbarWidth;
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  // Measure the usable content width (scrollbar excluded) so the justified rows
+  // can be scaled to fill it; recompute whenever the panel is resized.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      setContainerWidth(entries[0].contentRect.width);
+    });
+    observer.observe(el);
+    setContainerWidth(el.clientWidth);
+    return () => observer.disconnect();
+  }, []);
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
@@ -93,27 +210,75 @@ export const SearchResults: React.FunctionComponent<{
     }
   };
 
+  // Later pages load only when the user scrolls near the bottom, so when the rows
+  // don't fill the pane there is nothing to scroll and they would be unreachable.
+  // Ask for another page in that case, but only if the last page added images:
+  // the provider has no "no more results" signal, so an empty page is what stops it.
+  const lastFillRequest = useRef({ searchId: -1, imageCount: -1 });
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (
+      !el ||
+      props.isLoading ||
+      props.error ||
+      !props.onBottomReached ||
+      containerWidth <= 0 ||
+      props.images.length === 0
+    )
+      return;
+    if (
+      props.searchId === lastFillRequest.current.searchId &&
+      props.images.length <= lastFillRequest.current.imageCount
+    )
+      return;
+    if (el.scrollHeight <= el.clientHeight * 1.5) {
+      lastFillRequest.current = {
+        searchId: props.searchId,
+        imageCount: props.images.length,
+      };
+      props.onBottomReached();
+    }
+  });
+
+  const rows = computeJustifiedRows(props.images, containerWidth);
+
   return (
     <ErrorBoundary>
       <div
+        ref={scrollRef}
+        onScroll={handleScroll}
         css={css`
-          flex-grow: 0;
+          flex: 1;
+          min-height: 0;
           position: relative;
-          height: 560px;
-          width: ${gridWidth}px;
+          /* scroll (not auto): always reserve the scrollbar so the width the
+             ResizeObserver measures is stable. With justified rows the row
+             height depends on the available width, so a scrollbar that appears
+             and disappears at an exact-fit boundary could otherwise oscillate.
+             No horizontal padding, so the initial clientWidth read matches the
+             observer's later contentRect width exactly (no first-paint jump). */
           overflow-y: scroll;
         `}
-        onScroll={handleScroll}
       >
-        <ImageList cols={colCount} rowHeight={140} sx={{ rowGap: "8px" }}>
-          {props.images.map((image) => (
-            <ImageListItemWithLazyLoad
-              key={image.thumbnailUrl}
-              image={image}
-              onSelect={props.handleSelection}
-            />
-          ))}
-        </ImageList>
+        {rows.map((row, rowIndex) => (
+          <div
+            key={rowIndex}
+            css={css`
+              display: flex;
+              gap: ${kRowGap}px;
+              margin-bottom: ${kRowGap}px;
+            `}
+          >
+            {row.map((tile) => (
+              <JustifiedTile
+                key={tile.image.thumbnailUrl}
+                tile={tile}
+                selected={tile.image.thumbnailUrl === props.selectedImageKey}
+                onSelect={props.handleSelection}
+              />
+            ))}
+          </div>
+        ))}
         {props.isLoading && (
           <div
             css={css`
