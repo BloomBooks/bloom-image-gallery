@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  failedSearch,
   IImage,
   ISearchProvider,
   ISearchResult,
@@ -118,10 +119,7 @@ export class WikipediaProvider implements ISearchProvider {
 
       return { images };
     } catch (error) {
-      return {
-        images: [],
-        error: `Error fetching from Wikimedia: ${error}`,
-      };
+      return failedSearch("Wikimedia Commons", error);
     }
   }
 

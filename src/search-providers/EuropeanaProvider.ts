@@ -1,5 +1,10 @@
 import axios from "axios";
-import { IImage, ISearchProvider, ISearchResult } from "./imageProvider";
+import {
+  failedSearch,
+  IImage,
+  ISearchProvider,
+  ISearchResult,
+} from "./imageProvider";
 import logo from "./europeana.png";
 import { basePathPrefix, port } from "../../common/locations";
 
@@ -79,10 +84,7 @@ export class Europeana implements ISearchProvider {
       };
     } catch (error) {
       console.error("Europeana search failed:", error);
-      return {
-        images: [],
-        error: "Failed to fetch images from Europeana",
-      };
+      return failedSearch("Europeana", error);
     }
   }
 
