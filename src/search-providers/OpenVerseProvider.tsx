@@ -1,5 +1,6 @@
 import axios from "axios";
 import {
+  failedSearch,
   IImage,
   ISearchProvider,
   ISearchResult,
@@ -101,11 +102,7 @@ export class OpenVerse implements ISearchProvider {
       };
     } catch (error) {
       console.error("OpenVerse search failed:", error);
-      return {
-        images: [],
-        // Not translated: not worth it for an error condition we never expect the user to see.
-        error: "Failed to fetch images from Openverse",
-      };
+      return failedSearch("Openverse", error);
     }
   }
 

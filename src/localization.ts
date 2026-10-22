@@ -44,7 +44,11 @@ export const ALL_GALLERY_STRINGS: Record<string, string> = {
     "International Illustrations: Art of Reading 3.0 is a collection of over 11,000 images. The collection is designed for use in the preparation of a wide variety of literacy and educational materials, such as shellbooks, primers, news-sheets, posters, and other culturally appropriate materials. These images are black and white line drawings collected from SIL and national artists from around the world.",
   "ImageLibrary.ArtOfReadingNotReadyInstructions":
     "To get Art of Reading images, you need to:",
+  "ImageLibrary.CannotReachSource":
+    "Could not reach {0}. Check that this computer is connected to the internet.",
   "ImageLibrary.CollectionsOnThisComputer": "Collections on this Computer",
+  "ImageLibrary.ComputerSeemsOffline":
+    "This computer seems to be offline. Searching {0} needs an internet connection.",
   "ImageLibrary.Disclaimer":
     "These images are not from Bloom or SIL. This tool requests images suitable for general audiences. However, we cannot guarantee that all images will be inoffensive.",
   "ImageLibrary.DownloadArtOfReading":

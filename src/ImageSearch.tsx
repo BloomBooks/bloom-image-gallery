@@ -1,15 +1,18 @@
 import { css } from "@emotion/react";
+import { Alert } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import React, { useEffect } from "react";
 import { useL10n } from "./localization";
 import { SearchResults } from "./SearchResults";
 import {
+  failedSearch,
   ISearchProvider,
   IImage,
   ISearchReport,
   ISearchResult,
 } from "./search-providers/imageProvider";
 import { SearchBar } from "./SearchBar";
+import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
 export const ImageSearch: React.FunctionComponent<{
   provider: ISearchProvider;
@@ -35,6 +38,13 @@ export const ImageSearch: React.FunctionComponent<{
   // used for paging
   const [previousSearchTerm, setPreviousSearchTerm] = React.useState("");
   const [previousLanguage, setPreviousLanguage] = React.useState(props.lang);
+
+  const isOnline = useOnlineStatus();
+  // A local collection can fail to answer too, but that is not about the internet.
+  const isOfflineFailure = !!searchResult?.offline && !props.provider.local;
+  const errorMessage = isOfflineFailure
+    ? l10n("ImageLibrary.CannotReachSource", "Could not reach {0}. Check that this computer is connected to the internet.", props.provider.label)
+    : searchResult?.error;
 
   // Stamp each image with the provider it came from, so that the host can report where a chosen
   // image was found instead of having to guess from its URL.
@@ -77,17 +87,23 @@ export const ImageSearch: React.FunctionComponent<{
         props.handleSelection(undefined);
         setSearchResult({ ...result, images: withProviderId(result.images) });
         setIsLoading(false);
+        // A provider that caught its own failure resolves with an error and no images; report
+        // that as the failed search it is, not as a search that found nothing.
+        const failedOutright = !!result.error && result.images.length === 0;
         reportSearch({
           term,
           providerId: props.provider.id,
           language,
-          resultCount: result.totalImages ?? result.images.length,
+          resultCount: failedOutright
+            ? undefined
+            : (result.totalImages ?? result.images.length),
           error: result.error,
         });
       })
       .catch((reason) => {
         console.log(`Image search failed: ${reason}`);
-        setSearchResult(undefined);
+        // Show the failure, rather than an empty pane that looks like nothing happened.
+        setSearchResult(failedSearch(props.provider.label, reason));
         setIsLoading(false);
         reportSearch({
           term,
@@ -115,18 +131,20 @@ export const ImageSearch: React.FunctionComponent<{
             // every page; falling back to the total we already had covers any that do not.
             totalImages: result.totalImages ?? searchResult.totalImages,
             error: result.error,
+            offline: result.offline,
           });
           setLastRetrievedPageZeroIndexed(nextPage);
           setIsLoading(false);
         })
         .catch((reason) => {
           console.log(`Image search failed: ${reason}`);
+          const failure = failedSearch(props.provider.label, reason);
+          // Keep the images we already have; just say why there are no more.
           setSearchResult({
             ...searchResult,
-            // Not translated: not worth it for an error condition we never expect the user to see.
-            error: `Failed to get more images: ${reason}`,
+            error: failure.error,
+            offline: failure.offline,
           });
-          //setSearchResult(undefined);
           setIsLoading(false);
         });
     }
@@ -200,6 +218,13 @@ export const ImageSearch: React.FunctionComponent<{
             setPreviousLanguage(lang);
           }}
         />
+        {/* Only a hint (see useOnlineStatus); a failed search is the real check. Once one has
+            failed for being offline, its message says the same thing, so this one steps aside. */}
+        {!props.provider.local && !isOnline && !isOfflineFailure && (
+          <Alert severity="warning" sx={{ marginTop: 2 }}>
+            {l10n("ImageLibrary.ComputerSeemsOffline", "This computer seems to be offline. Searching {0} needs an internet connection.", props.provider.label)}
+          </Alert>
+        )}
         {searchResult?.totalImages !== undefined && (
           <div
             css={css`
@@ -212,12 +237,16 @@ export const ImageSearch: React.FunctionComponent<{
           </div>
         )}
       </div>
-      {(isLoading || (searchResult && searchResult.images.length > 0)) && (
+      {/* SearchResults is where errors are shown, so it is needed for a failed search too,
+          even one that brought back no images at all. */}
+      {(isLoading ||
+        (searchResult &&
+          (searchResult.images.length > 0 || searchResult.error))) && (
         <SearchResults
           images={searchResult?.images || []}
           handleSelection={props.handleSelection}
           isLoading={isLoading}
-          error={searchResult?.error}
+          error={errorMessage}
           onBottomReached={() => loadNextPage()}
           selectedImageKey={props.selectedImageKey}
           searchId={searchCount}
