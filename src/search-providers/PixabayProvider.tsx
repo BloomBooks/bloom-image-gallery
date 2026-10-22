@@ -1,6 +1,7 @@
 import axios from "axios";
 import logo from "./pixabay.png?inline";
 import {
+  failedSearch,
   IImage,
   ISearchProvider,
   ISearchResult,
@@ -61,39 +62,44 @@ export class Pixabay implements ISearchProvider {
 
     const term = encodeURIComponent(searchTerm);
     const imageType = "illustration";
-    const response = await axios.get<PixabayResponse>(
-      `https://pixabay.com/api/?` +
-        `key=${key}` +
-        `&safesearch=true&q=${term}` +
-        `&page=${pageZeroIndexed + 1}&per_page=${perPage}`
-      //+ `&image_type=${imageType}`
-    );
+    try {
+      const response = await axios.get<PixabayResponse>(
+        `https://pixabay.com/api/?` +
+          `key=${key}` +
+          `&safesearch=true&q=${term}` +
+          `&page=${pageZeroIndexed + 1}&per_page=${perPage}`
+        //+ `&image_type=${imageType}`
+      );
 
-    // Store the total hits for pagination
-    this.totalHits = response.data.totalHits;
+      // Store the total hits for pagination
+      this.totalHits = response.data.totalHits;
 
-    return {
-      images: response.data.hits.map(
-        (hit: PixabayImage) =>
-          ({
-            thumbnailUrl: hit.previewURL,
-            // review: we have at least 3 premade sizes and can get a custom size too
-            reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
-            url: hit.largeImageURL, // 1280px max; used as the download URL when confirmed
-            sourceWebPage: hit.pageURL,
-            sourceWebPageLabel: "View on Pixabay",
-            size: hit.imageSize,
-            type: "?",
-            width: hit.imageWidth,
-            height: hit.imageHeight,
-            license: "Pixabay License",
-            licenseUrl: "https://pixabay.com/service/license/",
-            creator: hit.user,
-            credits: hit.user, // photographer holds the copyright under Pixabay License
-            raw: hit,
-          }) as IImage
-      ),
-    };
+      return {
+        images: response.data.hits.map(
+          (hit: PixabayImage) =>
+            ({
+              thumbnailUrl: hit.previewURL,
+              // review: we have at least 3 premade sizes and can get a custom size too
+              reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
+              url: hit.largeImageURL, // 1280px max; used as the download URL when confirmed
+              sourceWebPage: hit.pageURL,
+              sourceWebPageLabel: "View on Pixabay",
+              size: hit.imageSize,
+              type: "?",
+              width: hit.imageWidth,
+              height: hit.imageHeight,
+              license: "Pixabay License",
+              licenseUrl: "https://pixabay.com/service/license/",
+              creator: hit.user,
+              credits: hit.user, // photographer holds the copyright under Pixabay License
+              raw: hit,
+            }) as IImage
+        ),
+      };
+    } catch (error) {
+      console.error("Pixabay search failed:", error);
+      return failedSearch("Pixabay", error);
+    }
   }
 
   public aboutComponent(): JSX.Element {

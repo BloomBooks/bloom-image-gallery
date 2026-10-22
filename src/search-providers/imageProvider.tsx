@@ -1,4 +1,5 @@
 import { Alert, Typography } from "@mui/material";
+import axios from "axios";
 import React, { PropsWithChildren } from "react";
 import { useL10n } from "../localization";
 import { BloomMediaMetadata } from "../../common/bloomMediaMetadata";
@@ -25,6 +26,27 @@ export interface ISearchResult {
   images: IImage[];
   totalImages?: number;
   error?: string;
+  // Set when the source could not be reached at all, which almost always means this computer
+  // is offline. The gallery then shows the user a translated message instead of `error`.
+  offline?: boolean;
+}
+
+// True when a request failed without the server answering at all: an axios error with no
+// response, or the TypeError that fetch throws when the network is down.
+export function isNetworkError(error: unknown): boolean {
+  if (axios.isAxiosError(error)) return !error.response;
+  return error instanceof TypeError && /fetch/i.test(error.message);
+}
+
+// What a provider (or the gallery, for a provider that threw) returns when a search fails.
+// The error text is not translated: it goes into the host's search report as well as being a
+// fallback for the user when the failure is not an offline one.
+export function failedSearch(sourceName: string, error: unknown): ISearchResult {
+  return {
+    images: [],
+    error: `Failed to fetch images from ${sourceName}: ${error}`,
+    offline: isNetworkError(error),
+  };
 }
 
 // What the host is told about a completed search, so that it can record what people search
