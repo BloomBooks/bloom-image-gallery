@@ -14,6 +14,11 @@ import {
 import { SearchBar } from "./SearchBar";
 import { useOnlineStatus } from "./hooks/useOnlineStatus";
 
+// Providers that catch their own failures (see failedSearch) resolve with an error and no
+// images, rather than rejecting.
+const failedOutright = (result: ISearchResult): boolean =>
+  !!result.error && result.images.length === 0;
+
 export const ImageSearch: React.FunctionComponent<{
   provider: ISearchProvider;
   lang: string;
@@ -87,14 +92,12 @@ export const ImageSearch: React.FunctionComponent<{
         props.handleSelection(undefined);
         setSearchResult({ ...result, images: withProviderId(result.images) });
         setIsLoading(false);
-        // A provider that caught its own failure resolves with an error and no images; report
-        // that as the failed search it is, not as a search that found nothing.
-        const failedOutright = !!result.error && result.images.length === 0;
         reportSearch({
           term,
           providerId: props.provider.id,
           language,
-          resultCount: failedOutright
+          // Report a failure as the failed search it is, not as a search that found nothing.
+          resultCount: failedOutright(result)
             ? undefined
             : (result.totalImages ?? result.images.length),
           error: result.error,
@@ -133,7 +136,10 @@ export const ImageSearch: React.FunctionComponent<{
             error: result.error,
             offline: result.offline,
           });
-          setLastRetrievedPageZeroIndexed(nextPage);
+          // A provider that caught its own failure resolves rather than rejecting. Stay on the
+          // page before it, so that scrolling again (say, once back online) retries the page
+          // that failed instead of skipping over its images.
+          if (!failedOutright(result)) setLastRetrievedPageZeroIndexed(nextPage);
           setIsLoading(false);
         })
         .catch((reason) => {
