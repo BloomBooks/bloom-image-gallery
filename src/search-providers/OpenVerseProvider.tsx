@@ -11,6 +11,41 @@ import logo from "./openverse.png?inline";
 import { Alert } from "@mui/material";
 import React from "react";
 import { useL10n } from "../localization";
+
+// Wikimedia only serves thumbnails at a set of standard widths; 330 is the one closest to our tiles.
+const kWikimediaThumbnailWidth = 330;
+
+// Openverse's thumbnail proxy usually fails (500 after a long wait) for images hosted on
+// Wikimedia Commons (BL-17045), so for those we ask Wikimedia for a thumbnail directly.
+// Returns undefined when we can't safely build one, so the caller can fall back.
+export function getWikimediaThumbnailUrl(
+  imageUrl: string,
+  imageWidth: number | undefined
+): string | undefined {
+  let url: URL;
+  try {
+    url = new URL(imageUrl);
+  } catch {
+    return undefined;
+  }
+  if (url.protocol !== "https:" || url.hostname !== "upload.wikimedia.org")
+    return undefined;
+  // e.g. /wikipedia/commons/a/a1/Podarcis_muralis_11.jpg
+  // Only the path matters: Openverse sometimes adds tracking parameters (?utm_source=...).
+  const match = url.pathname.match(
+    /^(\/wikipedia\/[^/]+)\/([0-9a-f]\/[0-9a-f]{2}\/([^/]+\.(jpe?g|png|gif|webp|svg)))$/i
+  );
+  if (!match || !imageWidth) return undefined;
+  const [, project, path, fileName, extension] = match;
+  const base = `https://upload.wikimedia.org${project}`;
+  const isSvg = extension.toLowerCase() === "svg";
+  // Wikimedia refuses to scale a raster image up, and a small image makes a fine thumbnail anyway.
+  if (!isSvg && imageWidth <= kWikimediaThumbnailWidth) return imageUrl;
+  // e.g. .../commons/thumb/a/a1/Podarcis_muralis_11.jpg/330px-Podarcis_muralis_11.jpg
+  // (an SVG's thumbnail is a PNG: .../330px-Name.svg.png)
+  return `${base}/thumb/${path}/${kWikimediaThumbnailWidth}px-${fileName}${isSvg ? ".png" : ""}`;
+}
+
 export class OpenVerse implements ISearchProvider {
   public label = "Openverse";
   public id = "openverse";
@@ -82,7 +117,9 @@ export class OpenVerse implements ISearchProvider {
         images: response.data.results.map(
           (result: OpenVerseImage) =>
             ({
-              thumbnailUrl: result.thumbnail,
+              thumbnailUrl:
+                getWikimediaThumbnailUrl(result.url, result.width) ??
+                result.thumbnail,
               url: result.url,
               reasonableSizeUrl: result.url,
               size: 0,
