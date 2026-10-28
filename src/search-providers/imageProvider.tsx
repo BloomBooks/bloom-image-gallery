@@ -83,6 +83,9 @@ export interface IImage extends BloomMediaMetadata {
   sourceWebPage?: string;
   sourceWebPageLabel?: string; // link text for sourceWebPage; defaults to "Source"
   size: number;
+  // True when size is unknown (0) and the browser can't look it up either, e.g. because
+  // the image's server refuses cross-origin HEAD requests (no CORS header).
+  sizeUnavailable?: boolean;
   type: string;
   width?: number;
   height?: number;
