@@ -14,6 +14,24 @@ import React, { useState } from "react";
 import { useLocalStorageString } from "./useLocalStorageString";
 import { interpolateJsx, useL10n } from "../localization";
 
+// The longest side of largeImageURL, the copy we download. Ordinary API keys get nothing
+// bigger: imageURL and fullHDURL are only for accounts approved for full API access.
+const kLargeImageMaxDimension = 1280;
+
+// The size Pixabay serves an image at when it scales it so neither side exceeds
+// maxDimension. It never enlarges a smaller image.
+export function scaledToFit(
+  width: number,
+  height: number,
+  maxDimension: number
+): { width: number; height: number } {
+  const scale = Math.min(1, maxDimension / Math.max(width, height));
+  return {
+    width: Math.round(width * scale),
+    height: Math.round(height * scale),
+  };
+}
+
 export class Pixabay implements ISearchProvider {
   public label = "Pixabay";
   public id = "pixabay";
@@ -76,24 +94,34 @@ export class Pixabay implements ISearchProvider {
 
       return {
         images: response.data.hits.map(
-          (hit: PixabayImage) =>
-            ({
+          (hit: PixabayImage) => {
+            // Describe the file we will download, not the original, which can be several
+            // times bigger (BL-17034). Pixabay doesn't give that file's size in bytes, and
+            // its CDN sends no CORS header, so the browser can't ask for it either.
+            const downloaded = scaledToFit(
+              hit.imageWidth,
+              hit.imageHeight,
+              kLargeImageMaxDimension
+            );
+            return {
               thumbnailUrl: hit.previewURL,
               // review: we have at least 3 premade sizes and can get a custom size too
               reasonableSizeUrl: hit.webformatURL, // note: with the hit.webformatURL, we can actually request a smaller image if we knew that HD is overkill
               url: hit.largeImageURL, // 1280px max; used as the download URL when confirmed
               sourceWebPage: hit.pageURL,
               sourceWebPageLabel: "View on Pixabay",
-              size: hit.imageSize,
+              size: 0,
+              sizeUnavailable: true,
               type: "?",
-              width: hit.imageWidth,
-              height: hit.imageHeight,
+              width: downloaded.width,
+              height: downloaded.height,
               license: "Pixabay License",
               licenseUrl: "https://pixabay.com/service/license/",
               creator: hit.user,
               credits: hit.user, // photographer holds the copyright under Pixabay License
               raw: hit,
-            }) as IImage
+            } as IImage;
+          }
         ),
       };
     } catch (error) {
