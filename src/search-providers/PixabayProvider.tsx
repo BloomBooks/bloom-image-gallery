@@ -96,8 +96,8 @@ export class Pixabay implements ISearchProvider {
         images: response.data.hits.map(
           (hit: PixabayImage) => {
             // Describe the file we will download, not the original, which can be several
-            // times bigger (BL-17034). Pixabay doesn't give that file's size in bytes, so
-            // leave it 0 and let the details panel ask the server.
+            // times bigger (BL-17034). Pixabay doesn't give that file's size in bytes, and
+            // its CDN sends no CORS header, so the browser can't ask for it either.
             const downloaded = scaledToFit(
               hit.imageWidth,
               hit.imageHeight,
@@ -111,6 +111,7 @@ export class Pixabay implements ISearchProvider {
               sourceWebPage: hit.pageURL,
               sourceWebPageLabel: "View on Pixabay",
               size: 0,
+              sizeUnavailable: true,
               type: "?",
               width: downloaded.width,
               height: downloaded.height,
