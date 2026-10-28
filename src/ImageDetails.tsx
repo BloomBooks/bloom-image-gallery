@@ -64,21 +64,32 @@ export const ImageDetails: React.FunctionComponent<{
   }
 
   useEffect(() => {
-    // Prefer the original image's size reported by the provider. Only fall back to
-    // measuring the preview image (reasonableSizeUrl) when the provider didn't supply one.
+    // Prefer the size the provider reports for the file we will download. Otherwise ask the
+    // server for the size of that file (url), or of the preview when there is no url, unless
+    // the provider says the server won't answer. If we can't learn it, show no size rather
+    // than the previous image's.
+    let stale = false;
+    const sizeUrl = props.image?.url || props.image?.reasonableSizeUrl;
     if (props.image?.size) {
       setFileSize(props.image.size);
-    } else if (props.image?.reasonableSizeUrl) {
-      fetch(props.image.reasonableSizeUrl, { method: "HEAD" })
+    } else if (sizeUrl && !props.image?.sizeUnavailable) {
+      setFileSize(0);
+      fetch(sizeUrl, { method: "HEAD" })
         .then((response) => {
+          if (stale) return;
           const size = response.headers.get("content-length");
           setFileSize(size ? parseInt(size, 10) : 0);
         })
         .catch((err) => console.error("Error fetching image size:", err));
+    } else {
+      setFileSize(0);
     }
+    return () => {
+      stale = true;
+    };
   }, [props.image]);
 
-  // Prefer the original image's dimensions reported by the provider; otherwise fall back
+  // Prefer the dimensions the provider reports for the file we will download; otherwise fall back
   // to whatever the preview image turns out to be once it loads.
   useEffect(() => {
     if (props.image?.width && props.image?.height) {
