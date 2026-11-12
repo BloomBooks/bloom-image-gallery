@@ -34,6 +34,7 @@ import {
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
 import { basePathPrefix, port } from "../common/locations";
 import axios from "axios";
+import { chooseInitialProvider } from "./search-providers/chooseInitialProvider";
 import { IProviderKeysV1 } from "../common/bloomMediaMetadata";
 
 const drawerWidth = 216;
@@ -52,6 +53,10 @@ export interface IImageGalleryProps {
   localCollectionsBaseUrl?: string;
   /** BCP 47 language tag for search queries (e.g. "en", "fr"). Defaults to "en". */
   lang?: string;
+  /** Id of the source to select when the gallery opens (e.g. the one the user last accepted an
+   *  image from). If that source is not installed, or cannot be used yet (Pixabay with no API
+   *  key), the gallery opens on its usual first source instead. */
+  initialProviderId?: string;
   /** Versioned bundle of provider API keys loaded from the host's durable storage. */
   initialProviderKeys?: IProviderKeysV1;
   /** Called whenever a provider key is added or changed; host should persist the bundle. */
@@ -80,6 +85,11 @@ export interface IImageGalleryProps {
 function App(props: IImageGalleryProps) {
   const [providerVersion, setProviderVersion] = useState(0);
   const [imageProviders, setImageProviders] = useState<ISearchProvider[]>([]);
+  // True once initProviders has added every source it is going to add.
+  const [allProvidersLoaded, setAllProvidersLoaded] = useState(false);
+  // The opening selection is made once. After that, no selection (e.g. while showing a file
+  // the user picked from disk) must stay that way even if more sources arrive.
+  const initialSelectionMadeRef = useRef(false);
 
   const addToImageProviders = (provider: ISearchProvider) => {
     setImageProviders((prev) => {
@@ -142,6 +152,7 @@ function App(props: IImageGalleryProps) {
       // addToImageProviders(new BrowserExtensionQueueProvider());
       addToImageProviders(pixabay);
       // addToImageProviders(await new Europeana().checkReadiness());
+      setAllProvidersLoaded(true);
     };
     initProviders();
   }, []); // Only run once on mount
@@ -199,11 +210,19 @@ function App(props: IImageGalleryProps) {
   );
 
   useEffect(() => {
-    // select an initial collection. Note that if selectedProvider is null, then that means we don't want a selection
-    if (selectedProvider === undefined && imageProviders.length > 0) {
-      setSelectedProvider(imageProviders[0]);
+    // select an initial collection. This has to be an effect because the sources arrive
+    // asynchronously (see initProviders), and the choice may have to wait for a later one.
+    if (initialSelectionMadeRef.current || selectedProvider !== undefined) return;
+    const initial = chooseInitialProvider(
+      imageProviders,
+      props.initialProviderId,
+      allProvidersLoaded
+    );
+    if (initial) {
+      initialSelectionMadeRef.current = true;
+      setSelectedProvider(initial);
     }
-  }, [imageProviders]);
+  }, [imageProviders, allProvidersLoaded]);
 
   function handleSelectCollection(provider: ISearchProvider) {
     // Only report an actual CHANGE of source. Clicking the source that is already selected is
