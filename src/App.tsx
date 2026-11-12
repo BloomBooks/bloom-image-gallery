@@ -118,8 +118,11 @@ function App(props: IImageGalleryProps) {
         props.localCollectionsBaseUrl ??
         `http://localhost:${port}${basePathPrefix}`;
       try {
+        // Bounded, because when the host names a source to open on, the gallery selects
+        // nothing until this finishes; a host that never answers must not leave it blank.
         const response = await axios.get(
-          `${collectionsBaseUrl}/local-collections/collections`
+          `${collectionsBaseUrl}/local-collections/collections`,
+          { timeout: 10000 }
         );
         type CollectionMeta = {
           name: string;
