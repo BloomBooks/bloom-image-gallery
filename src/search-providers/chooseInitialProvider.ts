@@ -1,5 +1,26 @@
 import { ISearchProvider } from "./imageProvider";
 
+/** The provider id the gallery stamps on an image the user opened from their own disk. */
+export const kLocalDiskProviderId = "local-disk";
+
+/**
+ * Decides whether accepting an image from acceptedProviderId changes the source the gallery
+ * should open on next time. Returns the new source's id, or undefined when nothing changes:
+ * a file from disk is not a source the gallery can open on, and accepting from the source that
+ * is already preferred changes nothing.
+ */
+export function newPreferredProviderId(
+  acceptedProviderId: string | undefined,
+  currentPreferredId: string | undefined,
+): string | undefined {
+  if (!acceptedProviderId || acceptedProviderId === kLocalDiskProviderId) {
+    return undefined;
+  }
+  return acceptedProviderId === currentPreferredId
+    ? undefined
+    : acceptedProviderId;
+}
+
 /**
  * Decides which source the gallery should select when it opens.
  *

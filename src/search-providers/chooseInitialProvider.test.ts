@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { chooseInitialProvider } from "./chooseInitialProvider";
+import {
+  chooseInitialProvider,
+  kLocalDiskProviderId,
+  newPreferredProviderId,
+} from "./chooseInitialProvider";
 import { ISearchProvider, ISearchResult } from "./imageProvider";
 
 function provider(id: string, isReady = true): ISearchProvider {
@@ -58,5 +62,28 @@ describe("chooseInitialProvider", () => {
         true,
       ),
     ).toBe(openverse);
+  });
+});
+
+describe("newPreferredProviderId", () => {
+  it("returns a source different from the current one", () => {
+    expect(newPreferredProviderId("pixabay", "openverse")).toBe("pixabay");
+    expect(newPreferredProviderId("art-of-reading", undefined)).toBe(
+      "art-of-reading",
+    );
+  });
+
+  it("returns undefined when the source is already the preferred one", () => {
+    expect(newPreferredProviderId("pixabay", "pixabay")).toBeUndefined();
+  });
+
+  it("ignores a file opened from disk", () => {
+    expect(
+      newPreferredProviderId(kLocalDiskProviderId, "openverse"),
+    ).toBeUndefined();
+  });
+
+  it("ignores an image with no source", () => {
+    expect(newPreferredProviderId(undefined, "openverse")).toBeUndefined();
   });
 });
