@@ -199,6 +199,9 @@ function App(props: IImageGalleryProps) {
       });
     }
     if (image) {
+      // Picking a file counts as the opening choice, so a source that arrives later does not
+      // take its place.
+      initialSelectionMadeRef.current = true;
       setSelectedProvider(undefined);
       // However the file was chosen -- by the host or by our fallback input -- it came off disk.
       setSelectedImage({ ...image, providerId: image.providerId ?? "local-disk" });
