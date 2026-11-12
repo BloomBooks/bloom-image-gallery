@@ -37,6 +37,8 @@ import axios from "axios";
 import { IProviderKeysV1 } from "../common/bloomMediaMetadata";
 
 const drawerWidth = 216;
+// The source id of an image the user opened from their own disk.
+const kLocalDiskProviderId = "local-disk";
 
 export interface IImageGalleryProps {
   /** Called when the user confirms an image selection; host should insert the image. */
@@ -112,15 +114,14 @@ function App(props: IImageGalleryProps) {
       addToImageProviders(pixabay);
       // Open on the source the host asked for if it is there and usable (Pixabay needs a key),
       // otherwise on Openverse. Only a local collection has to wait for the request below.
-      const openOn = (sources: ISearchProvider[]) =>
+      const sources: ISearchProvider[] = [openVerse, pixabay];
+      const openOn = () =>
         sources.find((p) => p.id === props.initialProviderId && p.isReady) ??
         openVerse;
       const waitForCollections =
         !!props.initialProviderId &&
-        props.initialProviderId !== openVerse.id &&
-        props.initialProviderId !== pixabay.id;
-      if (!waitForCollections) setSelectedProvider(openOn([pixabay]));
-      const localSources: ISearchProvider[] = [];
+        !sources.some((p) => p.id === props.initialProviderId);
+      if (!waitForCollections) setSelectedProvider(openOn());
       // addToImageProviders(new WikipediaProvider());
       // Discover local image collections (e.g. Art of Reading) from the host.
       // Each collection becomes its own provider entry.
@@ -155,14 +156,14 @@ function App(props: IImageGalleryProps) {
           provider.isReady = true;
           provider.languages = languages ?? ["en"];
           addToImageProviders(provider);
-          localSources.push(provider);
+          sources.push(provider);
         }
       } catch {
         // No local collections available (e.g. server not running in dev).
       }
       // Unless the user has already picked a source while waiting.
       if (waitForCollections)
-        setSelectedProvider((current) => current ?? openOn(localSources));
+        setSelectedProvider((current) => current ?? openOn());
       // addToImageProviders(new BrowserExtensionQueueProvider());
       // addToImageProviders(await new Europeana().checkReadiness());
     };
@@ -215,7 +216,7 @@ function App(props: IImageGalleryProps) {
       // However the file was chosen -- by the host or by our fallback input -- it came off disk,
       // whatever source id the host put on it. Otherwise confirming it could make that source
       // the one the gallery opens on next time.
-      setSelectedImage({ ...image, providerId: "local-disk" });
+      setSelectedImage({ ...image, providerId: kLocalDiskProviderId });
     }
   };
 
@@ -226,7 +227,7 @@ function App(props: IImageGalleryProps) {
   function confirmSelection(image: IImage) {
     props.onConfirmSelection(image);
     // A file from disk is not a source the gallery can open on.
-    if (image.providerId && image.providerId !== "local-disk") {
+    if (image.providerId && image.providerId !== kLocalDiskProviderId) {
       props.onPreferredProviderChange?.(image.providerId);
     }
   }
