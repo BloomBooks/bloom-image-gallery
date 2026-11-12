@@ -127,6 +127,9 @@ function App(props: IImageGalleryProps) {
       });
       pixabay.onReadyStateChange = forceUpdate;
       addToImageProviders(new OpenVerse());
+      // Added before the collections request, so a host that is slow to list its collections
+      // cannot hold back a remembered Pixabay.
+      addToImageProviders(pixabay);
       // addToImageProviders(new WikipediaProvider());
       // Discover local image collections (e.g. Art of Reading) from the host.
       // Each collection becomes its own provider entry.
@@ -170,7 +173,6 @@ function App(props: IImageGalleryProps) {
       // superseded): adding sources or ending the wait now would only affect a newer run.
       if (collectionsRequest.signal.aborted) return;
       // addToImageProviders(new BrowserExtensionQueueProvider());
-      addToImageProviders(pixabay);
       // addToImageProviders(await new Europeana().checkReadiness());
       clearTimeout(stopWaiting);
       setAllProvidersLoaded(true);
