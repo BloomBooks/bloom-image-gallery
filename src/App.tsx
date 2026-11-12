@@ -34,11 +34,6 @@ import {
 import { ArtOfReadingProvider } from "./search-providers/ArtOfReadingProvider";
 import { basePathPrefix, port } from "../common/locations";
 import axios from "axios";
-import {
-  chooseInitialProvider,
-  kLocalDiskProviderId,
-  newPreferredProviderId,
-} from "./search-providers/chooseInitialProvider";
 import { IProviderKeysV1 } from "../common/bloomMediaMetadata";
 
 const drawerWidth = 216;
@@ -61,9 +56,8 @@ export interface IImageGalleryProps {
    *  image from). If that source is not installed, or cannot be used yet (Pixabay with no API
    *  key), the gallery opens on its usual first source instead. */
   initialProviderId?: string;
-  /** Called when the user confirms an image from a source other than the one the gallery would
-   *  now open on; host should persist the id and pass it back as initialProviderId. Not called
-   *  for a file opened from disk, which is not a source the gallery can open on. */
+  /** Called with the source of each image the user confirms (not for a file opened from disk);
+   *  host should persist the id and pass it back as initialProviderId. */
   onPreferredProviderChange?: (providerId: string) => void;
   /** Versioned bundle of provider API keys loaded from the host's durable storage. */
   initialProviderKeys?: IProviderKeysV1;
@@ -93,12 +87,6 @@ export interface IImageGalleryProps {
 function App(props: IImageGalleryProps) {
   const [providerVersion, setProviderVersion] = useState(0);
   const [imageProviders, setImageProviders] = useState<ISearchProvider[]>([]);
-  // True once initProviders has added every source it is going to add, or has stopped waiting
-  // for a slow host to list its collections.
-  const [allProvidersLoaded, setAllProvidersLoaded] = useState(false);
-  // The opening selection is made once. After that, no selection (e.g. while showing a file
-  // the user picked from disk) must stay that way even if more sources arrive.
-  const initialSelectionMadeRef = useRef(false);
 
   const addToImageProviders = (provider: ISearchProvider) => {
     setImageProviders((prev) => {
@@ -111,13 +99,6 @@ function App(props: IImageGalleryProps) {
 
   // Initialize built-in providers
   useEffect(() => {
-    // When the host names a source to open on, nothing is selected until the sources have
-    // loaded. Stop waiting after a while, so a host that is slow to list its collections
-    // cannot leave the gallery blank; collections that arrive later are still listed.
-    const stopWaiting = setTimeout(() => setAllProvidersLoaded(true), 10000);
-    // Ends the collections request when the gallery closes, so a host that never answers
-    // does not collect one pending request per opening.
-    const collectionsRequest = new AbortController();
     const initProviders = async () => {
       const forceUpdate = () => setProviderVersion((v) => v + 1);
       const pixabay = new Pixabay({
@@ -126,10 +107,20 @@ function App(props: IImageGalleryProps) {
           props.onProviderKeysChange?.({ version: 1, pixabay: key }),
       });
       pixabay.onReadyStateChange = forceUpdate;
-      addToImageProviders(new OpenVerse());
-      // Added before the collections request, so a host that is slow to list its collections
-      // cannot hold back a remembered Pixabay.
+      const openVerse = new OpenVerse();
+      addToImageProviders(openVerse);
       addToImageProviders(pixabay);
+      // Open on the source the host asked for if it is there and usable (Pixabay needs a key),
+      // otherwise on Openverse. Only a local collection has to wait for the request below.
+      const openOn = (sources: ISearchProvider[]) =>
+        sources.find((p) => p.id === props.initialProviderId && p.isReady) ??
+        openVerse;
+      const waitForCollections =
+        !!props.initialProviderId &&
+        props.initialProviderId !== openVerse.id &&
+        props.initialProviderId !== pixabay.id;
+      if (!waitForCollections) setSelectedProvider(openOn([pixabay]));
+      const localSources: ISearchProvider[] = [];
       // addToImageProviders(new WikipediaProvider());
       // Discover local image collections (e.g. Art of Reading) from the host.
       // Each collection becomes its own provider entry.
@@ -138,8 +129,7 @@ function App(props: IImageGalleryProps) {
         `http://localhost:${port}${basePathPrefix}`;
       try {
         const response = await axios.get(
-          `${collectionsBaseUrl}/local-collections/collections`,
-          { signal: collectionsRequest.signal }
+          `${collectionsBaseUrl}/local-collections/collections`
         );
         type CollectionMeta = {
           name: string;
@@ -165,23 +155,16 @@ function App(props: IImageGalleryProps) {
           provider.isReady = true;
           provider.languages = languages ?? ["en"];
           addToImageProviders(provider);
+          localSources.push(provider);
         }
       } catch {
         // No local collections available (e.g. server not running in dev).
       }
-      // The gallery has closed (or, in React's development double mount, this run was
-      // superseded): adding sources or ending the wait now would only affect a newer run.
-      if (collectionsRequest.signal.aborted) return;
+      if (waitForCollections) setSelectedProvider(openOn(localSources));
       // addToImageProviders(new BrowserExtensionQueueProvider());
       // addToImageProviders(await new Europeana().checkReadiness());
-      clearTimeout(stopWaiting);
-      setAllProvidersLoaded(true);
     };
     initProviders();
-    return () => {
-      clearTimeout(stopWaiting);
-      collectionsRequest.abort();
-    };
   }, []); // Only run once on mount
 
   const [selectedProvider, setSelectedProvider] = useState<
@@ -226,14 +209,11 @@ function App(props: IImageGalleryProps) {
       });
     }
     if (image) {
-      // Picking a file counts as the opening choice, so a source that arrives later does not
-      // take its place.
-      initialSelectionMadeRef.current = true;
       setSelectedProvider(undefined);
       // However the file was chosen -- by the host or by our fallback input -- it came off disk,
       // whatever source id the host put on it. Otherwise confirming it could make that source
       // the one the gallery opens on next time.
-      setSelectedImage({ ...image, providerId: kLocalDiskProviderId });
+      setSelectedImage({ ...image, providerId: "local-disk" });
     }
   };
 
@@ -241,33 +221,11 @@ function App(props: IImageGalleryProps) {
     undefined
   );
 
-  useEffect(() => {
-    // select an initial collection. This has to be an effect because the sources arrive
-    // asynchronously (see initProviders), and the choice may have to wait for a later one.
-    if (initialSelectionMadeRef.current || selectedProvider !== undefined) return;
-    const initial = chooseInitialProvider(
-      imageProviders,
-      props.initialProviderId,
-      allProvidersLoaded
-    );
-    if (initial) {
-      initialSelectionMadeRef.current = true;
-      setSelectedProvider(initial);
-    }
-  }, [imageProviders, allProvidersLoaded]);
-
-  // The source the host was last told the gallery should open on.
-  const preferredProviderIdRef = useRef(props.initialProviderId);
-
   function confirmSelection(image: IImage) {
     props.onConfirmSelection(image);
-    const newPreferred = newPreferredProviderId(
-      image.providerId,
-      preferredProviderIdRef.current
-    );
-    if (newPreferred) {
-      preferredProviderIdRef.current = newPreferred;
-      props.onPreferredProviderChange?.(newPreferred);
+    // A file from disk is not a source the gallery can open on.
+    if (image.providerId && image.providerId !== "local-disk") {
+      props.onPreferredProviderChange?.(image.providerId);
     }
   }
 
