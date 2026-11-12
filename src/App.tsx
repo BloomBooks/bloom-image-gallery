@@ -103,6 +103,13 @@ function App(props: IImageGalleryProps) {
 
   // Initialize built-in providers
   useEffect(() => {
+    // When the host names a source to open on, nothing is selected until the sources have
+    // loaded. Stop waiting after a while, so a host that is slow to list its collections
+    // cannot leave the gallery blank; collections that arrive later are still listed.
+    const stopWaiting = setTimeout(() => setAllProvidersLoaded(true), 10000);
+    // Ends the collections request when the gallery closes, so a host that never answers
+    // does not collect one pending request per opening.
+    const collectionsRequest = new AbortController();
     const initProviders = async () => {
       const forceUpdate = () => setProviderVersion((v) => v + 1);
       const pixabay = new Pixabay({
@@ -112,13 +119,7 @@ function App(props: IImageGalleryProps) {
       });
       pixabay.onReadyStateChange = forceUpdate;
       addToImageProviders(new OpenVerse());
-      // Added before the collections request below, so opening on Pixabay never waits for it.
-      addToImageProviders(pixabay);
       // addToImageProviders(new WikipediaProvider());
-      // When the host names a source to open on, nothing is selected until the sources have
-      // loaded. Stop waiting after a while, so a host that is slow to list its collections
-      // cannot leave the gallery blank; collections that arrive later are still listed.
-      const stopWaiting = setTimeout(() => setAllProvidersLoaded(true), 10000);
       // Discover local image collections (e.g. Art of Reading) from the host.
       // Each collection becomes its own provider entry.
       const collectionsBaseUrl =
@@ -126,7 +127,8 @@ function App(props: IImageGalleryProps) {
         `http://localhost:${port}${basePathPrefix}`;
       try {
         const response = await axios.get(
-          `${collectionsBaseUrl}/local-collections/collections`
+          `${collectionsBaseUrl}/local-collections/collections`,
+          { signal: collectionsRequest.signal }
         );
         type CollectionMeta = {
           name: string;
@@ -156,12 +158,20 @@ function App(props: IImageGalleryProps) {
       } catch {
         // No local collections available (e.g. server not running in dev).
       }
+      // The gallery has closed (or, in React's development double mount, this run was
+      // superseded): adding sources or ending the wait now would only affect a newer run.
+      if (collectionsRequest.signal.aborted) return;
       // addToImageProviders(new BrowserExtensionQueueProvider());
+      addToImageProviders(pixabay);
       // addToImageProviders(await new Europeana().checkReadiness());
       clearTimeout(stopWaiting);
       setAllProvidersLoaded(true);
     };
     initProviders();
+    return () => {
+      clearTimeout(stopWaiting);
+      collectionsRequest.abort();
+    };
   }, []); // Only run once on mount
 
   const [selectedProvider, setSelectedProvider] = useState<
