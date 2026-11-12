@@ -160,7 +160,9 @@ function App(props: IImageGalleryProps) {
       } catch {
         // No local collections available (e.g. server not running in dev).
       }
-      if (waitForCollections) setSelectedProvider(openOn(localSources));
+      // Unless the user has already picked a source while waiting.
+      if (waitForCollections)
+        setSelectedProvider((current) => current ?? openOn(localSources));
       // addToImageProviders(new BrowserExtensionQueueProvider());
       // addToImageProviders(await new Europeana().checkReadiness());
     };
@@ -233,7 +235,7 @@ function App(props: IImageGalleryProps) {
     // Only report an actual CHANGE of source. Clicking the source that is already selected is
     // a no-op for the user, and reporting it would let one person clicking Pixabay three times
     // look like three people meeting its "you need an API key" wall.
-    const changed = provider !== selectedProvider;
+    const changed = provider.id !== selectedProvider?.id;
     setSelectedProvider(provider);
     if (changed) {
       props.onProviderSelected?.({
@@ -374,7 +376,7 @@ function App(props: IImageGalleryProps) {
                   <ListItemButton
                     key={provider.id}
                     onClick={() => handleSelectCollection(provider)}
-                    selected={provider === selectedProvider}
+                    selected={provider.id === selectedProvider?.id}
                     dense
                     sx={{
                       ...sourceItemSx,
@@ -413,7 +415,7 @@ function App(props: IImageGalleryProps) {
                   <ListItemButton
                     key={provider.id}
                     onClick={() => handleSelectCollection(provider)}
-                    selected={provider === selectedProvider}
+                    selected={provider.id === selectedProvider?.id}
                     dense
                     sx={{
                       ...sourceItemSx,
