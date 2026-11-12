@@ -228,8 +228,10 @@ function App(props: IImageGalleryProps) {
       // take its place.
       initialSelectionMadeRef.current = true;
       setSelectedProvider(undefined);
-      // However the file was chosen -- by the host or by our fallback input -- it came off disk.
-      setSelectedImage({ ...image, providerId: image.providerId ?? kLocalDiskProviderId });
+      // However the file was chosen -- by the host or by our fallback input -- it came off disk,
+      // whatever source id the host put on it. Otherwise confirming it could make that source
+      // the one the gallery opens on next time.
+      setSelectedImage({ ...image, providerId: kLocalDiskProviderId });
     }
   };
 
