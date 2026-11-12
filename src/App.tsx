@@ -37,8 +37,6 @@ import axios from "axios";
 import { IProviderKeysV1 } from "../common/bloomMediaMetadata";
 
 const drawerWidth = 216;
-// The source id of an image the user opened from their own disk.
-const kLocalDiskProviderId = "local-disk";
 
 export interface IImageGalleryProps {
   /** Called when the user confirms an image selection; host should insert the image. */
@@ -58,9 +56,6 @@ export interface IImageGalleryProps {
    *  image from). If that source is not installed, or cannot be used yet (Pixabay with no API
    *  key), the gallery opens on its usual first source instead. */
   initialProviderId?: string;
-  /** Called with the source of each image the user confirms (not for a file opened from disk);
-   *  host should persist the id and pass it back as initialProviderId. */
-  onPreferredProviderChange?: (providerId: string) => void;
   /** Versioned bundle of provider API keys loaded from the host's durable storage. */
   initialProviderKeys?: IProviderKeysV1;
   /** Called whenever a provider key is added or changed; host should persist the bundle. */
@@ -213,24 +208,14 @@ function App(props: IImageGalleryProps) {
     }
     if (image) {
       setSelectedProvider(undefined);
-      // However the file was chosen -- by the host or by our fallback input -- it came off disk,
-      // whatever source id the host put on it. Otherwise confirming it could make that source
-      // the one the gallery opens on next time.
-      setSelectedImage({ ...image, providerId: kLocalDiskProviderId });
+      // However the file was chosen -- by the host or by our fallback input -- it came off disk.
+      setSelectedImage({ ...image, providerId: image.providerId ?? "local-disk" });
     }
   };
 
   const [selectedImage, setSelectedImage] = React.useState<IImage | undefined>(
     undefined
   );
-
-  function confirmSelection(image: IImage) {
-    props.onConfirmSelection(image);
-    // A file from disk is not a source the gallery can open on.
-    if (image.providerId && image.providerId !== kLocalDiskProviderId) {
-      props.onPreferredProviderChange?.(image.providerId);
-    }
-  }
 
   function handleSelectCollection(provider: ISearchProvider) {
     // Only report an actual CHANGE of source. Clicking the source that is already selected is
@@ -538,7 +523,9 @@ function App(props: IImageGalleryProps) {
                 <Button
                   variant="contained"
                   disabled={!selectedImage}
-                  onClick={() => selectedImage && confirmSelection(selectedImage)}
+                  onClick={() =>
+                    selectedImage && props.onConfirmSelection(selectedImage)
+                  }
                 >
                   {l10n("ImageLibrary.UseThisImage", "Use this image")}
                 </Button>
