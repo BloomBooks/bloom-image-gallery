@@ -52,6 +52,10 @@ export interface IImageGalleryProps {
   localCollectionsBaseUrl?: string;
   /** BCP 47 language tag for search queries (e.g. "en", "fr"). Defaults to "en". */
   lang?: string;
+  /** Id of the source to select when the gallery opens (e.g. the one the user last accepted an
+   *  image from). If that source is not installed, or cannot be used yet (Pixabay with no API
+   *  key), the gallery opens on its usual first source instead. */
+  initialProviderId?: string;
   /** Versioned bundle of provider API keys loaded from the host's durable storage. */
   initialProviderKeys?: IProviderKeysV1;
   /** Called whenever a provider key is added or changed; host should persist the bundle. */
@@ -100,7 +104,10 @@ function App(props: IImageGalleryProps) {
           props.onProviderKeysChange?.({ version: 1, pixabay: key }),
       });
       pixabay.onReadyStateChange = forceUpdate;
-      addToImageProviders(new OpenVerse());
+      const openVerse = new OpenVerse();
+      addToImageProviders(openVerse);
+      addToImageProviders(pixabay);
+      const sources: ISearchProvider[] = [openVerse, pixabay];
       // addToImageProviders(new WikipediaProvider());
       // Discover local image collections (e.g. Art of Reading) from the host.
       // Each collection becomes its own provider entry.
@@ -135,12 +142,18 @@ function App(props: IImageGalleryProps) {
           provider.isReady = true;
           provider.languages = languages ?? ["en"];
           addToImageProviders(provider);
+          sources.push(provider);
         }
       } catch {
         // No local collections available (e.g. server not running in dev).
       }
+      // Open on the source the host asked for if it is there and usable (Pixabay needs a key),
+      // otherwise on Openverse; unless the user has already picked a source while waiting.
+      const initial =
+        sources.find((p) => p.id === props.initialProviderId && p.isReady) ??
+        openVerse;
+      setSelectedProvider((current) => current ?? initial);
       // addToImageProviders(new BrowserExtensionQueueProvider());
-      addToImageProviders(pixabay);
       // addToImageProviders(await new Europeana().checkReadiness());
     };
     initProviders();
@@ -198,18 +211,11 @@ function App(props: IImageGalleryProps) {
     undefined
   );
 
-  useEffect(() => {
-    // select an initial collection. Note that if selectedProvider is null, then that means we don't want a selection
-    if (selectedProvider === undefined && imageProviders.length > 0) {
-      setSelectedProvider(imageProviders[0]);
-    }
-  }, [imageProviders]);
-
   function handleSelectCollection(provider: ISearchProvider) {
     // Only report an actual CHANGE of source. Clicking the source that is already selected is
     // a no-op for the user, and reporting it would let one person clicking Pixabay three times
     // look like three people meeting its "you need an API key" wall.
-    const changed = provider !== selectedProvider;
+    const changed = provider.id !== selectedProvider?.id;
     setSelectedProvider(provider);
     if (changed) {
       props.onProviderSelected?.({
@@ -350,7 +356,7 @@ function App(props: IImageGalleryProps) {
                   <ListItemButton
                     key={provider.id}
                     onClick={() => handleSelectCollection(provider)}
-                    selected={provider === selectedProvider}
+                    selected={provider.id === selectedProvider?.id}
                     dense
                     sx={{
                       ...sourceItemSx,
@@ -389,7 +395,7 @@ function App(props: IImageGalleryProps) {
                   <ListItemButton
                     key={provider.id}
                     onClick={() => handleSelectCollection(provider)}
-                    selected={provider === selectedProvider}
+                    selected={provider.id === selectedProvider?.id}
                     dense
                     sx={{
                       ...sourceItemSx,
