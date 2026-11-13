@@ -107,16 +107,7 @@ function App(props: IImageGalleryProps) {
       const openVerse = new OpenVerse();
       addToImageProviders(openVerse);
       addToImageProviders(pixabay);
-      // Open on the source the host asked for if it is there and usable (Pixabay needs a key),
-      // otherwise on Openverse. Only a local collection has to wait for the request below.
       const sources: ISearchProvider[] = [openVerse, pixabay];
-      const openOn = () =>
-        sources.find((p) => p.id === props.initialProviderId && p.isReady) ??
-        openVerse;
-      const waitForCollections =
-        !!props.initialProviderId &&
-        !sources.some((p) => p.id === props.initialProviderId);
-      if (!waitForCollections) setSelectedProvider(openOn());
       // addToImageProviders(new WikipediaProvider());
       // Discover local image collections (e.g. Art of Reading) from the host.
       // Each collection becomes its own provider entry.
@@ -156,9 +147,12 @@ function App(props: IImageGalleryProps) {
       } catch {
         // No local collections available (e.g. server not running in dev).
       }
-      // Unless the user has already picked a source while waiting.
-      if (waitForCollections)
-        setSelectedProvider((current) => current ?? openOn());
+      // Open on the source the host asked for if it is there and usable (Pixabay needs a key),
+      // otherwise on Openverse; unless the user has already picked a source while waiting.
+      const initial =
+        sources.find((p) => p.id === props.initialProviderId && p.isReady) ??
+        openVerse;
+      setSelectedProvider((current) => current ?? initial);
       // addToImageProviders(new BrowserExtensionQueueProvider());
       // addToImageProviders(await new Europeana().checkReadiness());
     };
